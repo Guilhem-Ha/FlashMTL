@@ -16,7 +16,7 @@ import { useFocusEffect } from '@react-navigation/native'
 
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { SUPABASE_URL } from '../../constants/theme'
-import { fetchTrips, joinTrip, leaveTrip, fetchMyTripIds } from '../../lib/api'
+import { fetchTrips, joinTrip, leaveTrip, fetchMyTripIds, notifyTripOwner } from '../../lib/api'
 import { MOCK_TRIPS } from '../../mockData'
 import { useAuth } from '../../lib/authContext'
 import TripCard from '../../components/TripCard'
@@ -114,7 +114,12 @@ export default function TransportScreen() {
 
     setJoiningId(trip.id)
     try {
-      if (!USE_MOCK) await joinTrip(trip.id, user.id)
+      if (!USE_MOCK) {
+        await joinTrip(trip.id, user.id)
+        // Notify trip owner (fire-and-forget — never blocks UX)
+        const joinerPrenom = user.user_metadata?.prenom ?? 'Un étudiant'
+        notifyTripOwner(trip.id, joinerPrenom, trip.destination, trip.organisateur_id).catch(() => {})
+      }
       setMyTripIds(prev => [...prev, trip.id])
       setTrips(prev =>
         prev.map(t =>

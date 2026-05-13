@@ -89,3 +89,40 @@ export async function fetchMyTripIds(userId: string): Promise<string[]> {
   if (error) return []
   return (data ?? []).map((r: { trip_id: string }) => r.trip_id)
 }
+
+// ── Push notifications ────────────────────────────────────────
+
+export async function savePushToken(userId: string, token: string): Promise<void> {
+  const { error } = await supabase
+    .from('utilisateurs')
+    .update({ push_token: token })
+    .eq('id', userId)
+
+  if (error) console.warn('savePushToken error:', error.message)
+}
+
+export async function notifyTripOwner(
+  tripId: string,
+  joinerPrenom: string,
+  destination: string,
+  ownerId: string,
+): Promise<void> {
+  // Fetch owner push token
+  const { data } = await supabase
+    .from('utilisateurs')
+    .select('push_token, prenom')
+    .eq('id', ownerId)
+    .single()
+
+  if (!data?.push_token) return
+
+  // Call Supabase Edge Function
+  await supabase.functions.invoke('send-push', {
+    body: {
+      token: data.push_token,
+      title: '🚗 Quelqu\'un embarque !',
+      body: `${joinerPrenom} a rejoint ton trip vers ${destination}`,
+      data: { tripId },
+    },
+  })
+}
