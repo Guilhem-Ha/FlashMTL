@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useScrollToTop } from '@react-navigation/native'
 import * as Haptics from 'expo-haptics'
+import { useScreenEntrance } from '../../hooks/useScreenEntrance'
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { useOffres } from '../../hooks/useOffres'
 import OffreCard from '../../components/OffreCard'
@@ -28,6 +29,7 @@ const BACK_TO_TOP_THRESHOLD = 350
 export default function FeedScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
+  const entrance = useScreenEntrance()
   const { offres, loading, error, refresh } = useOffres()
   const [activeFilter, setActiveFilter] = useState<OffreCategorie | 'all'>('all')
   const [search, setSearch] = useState('')
@@ -194,7 +196,7 @@ export default function FeedScreen() {
   )
 
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, entrance.style]}>
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
 
       <Animated.FlatList
@@ -250,7 +252,7 @@ export default function FeedScreen() {
           <Text style={styles.backToTopText}>↑ Haut</Text>
         </TouchableOpacity>
       </Animated.View>
-    </View>
+    </Animated.View>
   )
 }
 

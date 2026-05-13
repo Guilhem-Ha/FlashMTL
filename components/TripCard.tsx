@@ -1,7 +1,8 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import {
-  View, Text, TouchableOpacity, StyleSheet,
+  View, Text, TouchableOpacity, StyleSheet, Animated,
 } from 'react-native'
+import * as Haptics from 'expo-haptics'
 import { Colors, Spacing, BorderRadius } from '../constants/theme'
 import type { Trip } from '../types'
 
@@ -23,9 +24,17 @@ export default function TripCard({ trip, onJoin, isOwner, hasJoined }: Props) {
   const placesLeft = trip.places_restantes
   const isFull = placesLeft === 0
   const isUrgent = placesLeft === 1
+  const scale = useRef(new Animated.Value(1)).current
+
+  const handlePressIn = () => {
+    Animated.spring(scale, { toValue: 0.98, useNativeDriver: true, bounciness: 0 }).start()
+  }
+  const handlePressOut = () => {
+    Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 5, tension: 80 }).start()
+  }
 
   return (
-    <View style={styles.card}>
+    <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
 
       {/* Header */}
       <View style={styles.header}>
@@ -91,8 +100,10 @@ export default function TripCard({ trip, onJoin, isOwner, hasJoined }: Props) {
           <TouchableOpacity
             style={[styles.joinBtn, isFull && styles.joinBtnDisabled]}
             onPress={onJoin}
+            onPressIn={() => { handlePressIn(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light) }}
+            onPressOut={handlePressOut}
             disabled={isFull}
-            activeOpacity={0.85}
+            activeOpacity={1}
           >
             <Text style={[styles.joinBtnText, isFull && styles.joinBtnTextDisabled]}>
               {isFull ? 'Complet' : "J'embarque"}
@@ -101,7 +112,7 @@ export default function TripCard({ trip, onJoin, isOwner, hasJoined }: Props) {
         )}
       </View>
 
-    </View>
+    </Animated.View>
   )
 }
 

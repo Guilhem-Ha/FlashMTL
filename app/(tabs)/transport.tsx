@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
+  Animated,
   ActivityIndicator,
   Alert,
   Platform,
@@ -16,6 +17,7 @@ import { useFocusEffect, useScrollToTop } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import * as Haptics from 'expo-haptics'
+import { useScreenEntrance } from '../../hooks/useScreenEntrance'
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { SUPABASE_URL } from '../../constants/theme'
 import { fetchTrips, joinTrip, leaveTrip, fetchMyTripIds, notifyTripOwner } from '../../lib/api'
@@ -29,6 +31,7 @@ const USE_MOCK = SUPABASE_URL.includes('TON_PROJECT_ID')
 export default function TransportScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
+  const entrance = useScreenEntrance()
   const { user } = useAuth()
   const flatRef = useRef<FlatList>(null)
   useScrollToTop(flatRef)
@@ -143,7 +146,7 @@ export default function TransportScreen() {
   }
 
   return (
-    <View style={styles.root}>
+    <Animated.View style={[styles.root, entrance.style]}>
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
 
       {/* Header */}
@@ -200,7 +203,7 @@ export default function TransportScreen() {
       >
         <Text style={styles.fabText}>+  Proposer un trip</Text>
       </TouchableOpacity>
-    </View>
+    </Animated.View>
   )
 }
 

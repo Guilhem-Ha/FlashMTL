@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import {
-  View, Text, Image, TouchableOpacity, StyleSheet,
+  View, Text, Image, TouchableOpacity, StyleSheet, Animated,
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import * as Haptics from 'expo-haptics'
@@ -29,14 +29,24 @@ export default function OffreCard({ offre, onPress }: Props) {
   const { timeLeft, isUrgent } = useCountdown(offre.expire_at)
   const urgentPlaces = offre.places_disponibles <= 3
   const nouveau = isNew(offre.created_at)
+  const scale = useRef(new Animated.Value(1)).current
+
+  const handlePressIn = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    Animated.spring(scale, { toValue: 0.97, useNativeDriver: true, bounciness: 0 }).start()
+  }
+  const handlePressOut = () => {
+    Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 5, tension: 80 }).start()
+  }
 
   return (
     <TouchableOpacity
-      style={styles.card}
       onPress={onPress}
-      activeOpacity={0.92}
-      onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      activeOpacity={1}
     >
+    <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
 
       {/* ── Image hero ── */}
       <View style={styles.imageContainer}>
@@ -110,6 +120,7 @@ export default function OffreCard({ offre, onPress }: Props) {
         </View>
       </View>
 
+    </Animated.View>
     </TouchableOpacity>
   )
 }

@@ -5,12 +5,14 @@ import {
   ScrollView, ActivityIndicator, StatusBar,
 } from 'react-native'
 import { useRouter } from 'expo-router'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { useAuth } from '../../lib/authContext'
 import { isUniversityEmail, CAMPUS_OPTIONS } from '../../lib/supabase'
 
 export default function SignupScreen() {
   const router = useRouter()
+  const insets = useSafeAreaInsets()
   const { signUp } = useAuth()
 
   const [prenom, setPrenom] = useState('')
@@ -76,7 +78,7 @@ export default function SignupScreen() {
     >
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingTop: insets.top }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
@@ -199,7 +201,7 @@ export default function SignupScreen() {
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Déjà un compte ? </Text>
-          <TouchableOpacity onPress={() => router.push('/auth/login' as any)}>
+          <TouchableOpacity onPress={() => router.replace('/auth/login' as any)}>
             <Text style={styles.footerLink}>Se connecter</Text>
           </TouchableOpacity>
         </View>
@@ -219,7 +221,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xxl,
   },
   logoBlock: {
-    paddingTop: Platform.OS === 'ios' ? 72 : 56,
+    paddingTop: Spacing.xl,
     paddingBottom: Spacing.xl,
     alignItems: 'center',
   },

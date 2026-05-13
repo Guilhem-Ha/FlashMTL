@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import {
   View, Text, StyleSheet, StatusBar, Platform,
-  TouchableOpacity, Alert, ScrollView, ActivityIndicator,
+  TouchableOpacity, Alert, ScrollView, ActivityIndicator, Animated,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useScreenEntrance } from '../../hooks/useScreenEntrance'
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { SUPABASE_URL } from '../../constants/theme'
 import { useAuth } from '../../lib/authContext'
@@ -27,6 +28,7 @@ function formatDate(dateStr: string): string {
 export default function ProfilScreen() {
   const router = useRouter()
   const { user, session, signOut } = useAuth()
+  const entrance = useScreenEntrance()
 
   const [myTrips, setMyTrips] = useState<Trip[]>([])
   const [myOrganizedTrips, setMyOrganizedTrips] = useState<Trip[]>([])
@@ -92,7 +94,7 @@ export default function ProfilScreen() {
   // ── Non connecté ─────────────────────────────────────────────
   if (!session) {
     return (
-      <View style={styles.container}>
+      <Animated.View style={[styles.container, entrance.style]}>
         <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
         <View style={[styles.headerRow, { paddingTop: insets.top + Spacing.md }]}>
           <Text style={styles.logo}>Mon Profil</Text>
@@ -125,13 +127,13 @@ export default function ProfilScreen() {
             Réservé aux étudiants des universités montréalaises
           </Text>
         </View>
-      </View>
+      </Animated.View>
     )
   }
 
   // ── Connecté ─────────────────────────────────────────────────
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, entrance.style]}>
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
@@ -253,7 +255,7 @@ export default function ProfilScreen() {
 
         <View style={{ height: Spacing.xxl }} />
       </ScrollView>
-    </View>
+    </Animated.View>
   )
 }
 

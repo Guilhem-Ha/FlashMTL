@@ -26,15 +26,64 @@ function AppNavigator() {
     })
   }, [])
 
-  if (onboardingDone === null) return null   // waiting for AsyncStorage
+  if (onboardingDone === null) return null
 
   return (
-    <Stack initialRouteName={onboardingDone ? '(tabs)' : 'onboarding'}>
-      <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="offre/[id]" options={{ headerShown: false }} />
-      <Stack.Screen name="auth/login" options={{ headerShown: false }} />
-      <Stack.Screen name="auth/signup" options={{ headerShown: false }} />
+    <Stack
+      initialRouteName={onboardingDone ? '(tabs)' : 'onboarding'}
+      screenOptions={{
+        gestureEnabled: true,
+        fullScreenGestureEnabled: true,   // swipe back depuis n'importe où sur iOS
+      }}
+    >
+      {/* Onboarding — fade simple, pas de retour arrière */}
+      <Stack.Screen
+        name="onboarding"
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
+          animation: 'fade',
+        }}
+      />
+
+      {/* Onglets principaux */}
+      <Stack.Screen
+        name="(tabs)"
+        options={{
+          headerShown: false,
+          animation: 'fade',
+        }}
+      />
+
+      {/* Fiche offre — slide classique depuis la droite */}
+      <Stack.Screen
+        name="offre/[id]"
+        options={{
+          headerShown: false,
+          animation: 'slide_from_right',
+          gestureEnabled: true,
+        }}
+      />
+
+      {/* Auth — monte depuis le bas */}
+      <Stack.Screen
+        name="auth/login"
+        options={{
+          headerShown: false,
+          animation: 'fade_from_bottom',
+          gestureEnabled: true,
+        }}
+      />
+      <Stack.Screen
+        name="auth/signup"
+        options={{
+          headerShown: false,
+          animation: 'fade_from_bottom',
+          gestureEnabled: true,
+        }}
+      />
+
+      {/* Création trip — modal swipe-down */}
       <Stack.Screen
         name="transport/create"
         options={{
