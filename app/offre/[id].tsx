@@ -174,8 +174,9 @@ export default function OffreDetailScreen() {
       setReservation(res)
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
       openRedemption(res)
-    } catch {
-      Alert.alert('Erreur', 'Impossible de créer la réservation.')
+    } catch (err: any) {
+      console.error('[Reservation error]', err?.message ?? err)
+      Alert.alert('Erreur', err?.message ?? 'Impossible de créer la réservation.')
     } finally {
       setReserving(false)
     }
