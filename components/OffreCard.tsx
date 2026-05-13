@@ -3,9 +3,14 @@ import {
   View, Text, Image, TouchableOpacity, StyleSheet,
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
+import * as Haptics from 'expo-haptics'
 import { Colors, Spacing, BorderRadius } from '../constants/theme'
 import { useCountdown } from '../hooks/useOffres'
 import type { Offre } from '../types'
+
+function isNew(createdAt: string): boolean {
+  return Date.now() - new Date(createdAt).getTime() < 2 * 60 * 60 * 1000
+}
 
 const CATEGORIE_LABELS: Record<string, string> = {
   resto: 'Restaurant',
@@ -23,9 +28,15 @@ interface Props {
 export default function OffreCard({ offre, onPress }: Props) {
   const { timeLeft, isUrgent } = useCountdown(offre.expire_at)
   const urgentPlaces = offre.places_disponibles <= 3
+  const nouveau = isNew(offre.created_at)
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.92}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={onPress}
+      activeOpacity={0.92}
+      onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+    >
 
       {/* ── Image hero ── */}
       <View style={styles.imageContainer}>
@@ -43,8 +54,15 @@ export default function OffreCard({ offre, onPress }: Props) {
 
         {/* Badges top */}
         <View style={styles.badgesTop}>
-          <View style={styles.badgeReduction}>
-            <Text style={styles.badgeText}>−{offre.reduction_pct}%</Text>
+          <View style={styles.badgesLeft}>
+            <View style={styles.badgeReduction}>
+              <Text style={styles.badgeText}>−{offre.reduction_pct}%</Text>
+            </View>
+            {nouveau && (
+              <View style={styles.badgeNew}>
+                <Text style={styles.badgeNewText}>✦ Nouveau</Text>
+              </View>
+            )}
           </View>
           <View style={[styles.countdown, isUrgent && styles.countdownUrgent]}>
             <View style={[styles.dot, isUrgent && styles.dotUrgent]} />
@@ -128,13 +146,30 @@ const styles = StyleSheet.create({
     right: Spacing.sm,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+  },
+  badgesLeft: {
+    flexDirection: 'column',
+    gap: 5,
+    alignItems: 'flex-start',
   },
   badgeReduction: {
     backgroundColor: Colors.ink,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: BorderRadius.sm,
+  },
+  badgeNew: {
+    backgroundColor: Colors.accent,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.sm,
+  },
+  badgeNewText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.ink,
+    letterSpacing: 0.5,
   },
   badgeText: {
     color: Colors.cream,

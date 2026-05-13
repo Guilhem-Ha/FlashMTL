@@ -15,6 +15,7 @@ import { useRouter } from 'expo-router'
 import { useFocusEffect } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import * as Haptics from 'expo-haptics'
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { SUPABASE_URL } from '../../constants/theme'
 import { fetchTrips, joinTrip, leaveTrip, fetchMyTripIds, notifyTripOwner } from '../../lib/api'
@@ -130,6 +131,7 @@ export default function TransportScreen() {
             : t
         )
       )
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
       Alert.alert('🎉 Tu embarques !', `Place réservée pour ${trip.destination}.`)
     } catch {
       Alert.alert('Erreur', 'Impossible de rejoindre ce trip.')

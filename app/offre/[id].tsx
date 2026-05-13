@@ -12,10 +12,12 @@ import {
   ActivityIndicator,
   Linking,
   Alert,
+  Share,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as Clipboard from 'expo-clipboard'
+import * as Haptics from 'expo-haptics'
 import MapView, { Marker } from 'react-native-maps'
 
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
@@ -101,8 +103,17 @@ export default function OffreDetailScreen() {
 
   const handleCopyCode = async () => {
     await Clipboard.setStringAsync(offre.code_promo)
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     setCopied(true)
     setTimeout(() => setCopied(false), 2800)
+  }
+
+  const handleShare = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    await Share.share({
+      message: `🔥 Offre flash chez ${offre.commerce.nom} — ${offre.titre}\n${offre.reduction_pct}% de réduction · Code : ${offre.code_promo}\n\nVia FlashMtl 📍 ${offre.commerce.quartier}, Montréal`,
+      title: `FlashMtl — ${offre.commerce.nom}`,
+    })
   }
 
   return (
@@ -128,6 +139,15 @@ export default function OffreDetailScreen() {
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Text style={styles.backBtnText}>←</Text>
+          </TouchableOpacity>
+
+          {/* Share button */}
+          <TouchableOpacity
+            style={[styles.shareBtn, { top: insets.top + 12 }]}
+            onPress={handleShare}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={styles.shareBtnText}>↑</Text>
           </TouchableOpacity>
 
           <View style={[styles.badgeReduction, { top: insets.top + 12 }]}>
@@ -247,6 +267,7 @@ export default function OffreDetailScreen() {
           style={[styles.ctaBtn, copied && styles.ctaBtnCopied]}
           onPress={handleCopyCode}
           activeOpacity={0.88}
+          onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}
         >
           <Text style={styles.ctaBtnText}>
             {copied ? `Code ${offre.code_promo} copié ✓` : `J'y vais  —  ${offre.prix_flash} $`}
@@ -301,6 +322,22 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 22,
     fontWeight: '300',
+  },
+  shareBtn: {
+    position: 'absolute',
+    left: 64,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(26,22,18,0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  shareBtnText: {
+    color: Colors.cream,
+    fontSize: 18,
+    fontWeight: '600',
+    lineHeight: 22,
   },
   badgeReduction: {
     position: 'absolute',

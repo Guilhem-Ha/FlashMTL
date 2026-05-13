@@ -2,21 +2,22 @@ import React, { useState, useMemo } from 'react'
 import {
   View, Text, FlatList, StyleSheet,
   ActivityIndicator, RefreshControl, StatusBar,
-  TouchableOpacity, ScrollView,
+  TouchableOpacity, ScrollView, TextInput, Platform,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import * as Haptics from 'expo-haptics'
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { useOffres } from '../../hooks/useOffres'
 import OffreCard from '../../components/OffreCard'
 import type { Offre, OffreCategorie } from '../../types'
 
 const CATEGORIES: { key: OffreCategorie | 'all'; label: string; icon: string }[] = [
-  { key: 'all',      label: 'Tout',       icon: '⚡' },
-  { key: 'resto',    label: 'Restos',     icon: '🍽️' },
-  { key: 'bar',      label: 'Bars',       icon: '🍻' },
-  { key: 'show',     label: 'Shows',      icon: '🎭' },
-  { key: 'activite', label: 'Activités',  icon: '🎯' },
+  { key: 'all',      label: 'Tout',      icon: '⚡' },
+  { key: 'resto',    label: 'Restos',    icon: '🍽️' },
+  { key: 'bar',      label: 'Bars',      icon: '🍻' },
+  { key: 'show',     label: 'Shows',     icon: '🎭' },
+  { key: 'activite', label: 'Activités', icon: '🎯' },
 ]
 
 export default function FeedScreen() {
@@ -24,14 +25,31 @@ export default function FeedScreen() {
   const insets = useSafeAreaInsets()
   const { offres, loading, error, refresh } = useOffres()
   const [activeFilter, setActiveFilter] = useState<OffreCategorie | 'all'>('all')
+  const [search, setSearch] = useState('')
+  const [searchFocused, setSearchFocused] = useState(false)
 
   const filtered = useMemo(() => {
-    if (activeFilter === 'all') return offres
-    return offres.filter(o => o.categorie === activeFilter)
-  }, [offres, activeFilter])
+    let result = offres
+    if (activeFilter !== 'all') result = result.filter(o => o.categorie === activeFilter)
+    if (search.trim()) {
+      const q = search.toLowerCase()
+      result = result.filter(o =>
+        o.commerce.nom.toLowerCase().includes(q) ||
+        o.titre.toLowerCase().includes(q) ||
+        o.commerce.quartier.toLowerCase().includes(q)
+      )
+    }
+    return result
+  }, [offres, activeFilter, search])
+
+  const handleFilterPress = (key: OffreCategorie | 'all') => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    setActiveFilter(key)
+  }
 
   const Header = () => (
     <View>
+      {/* Title row */}
       <View style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
         <View>
           <Text style={styles.logo}>FlashMtl ⚡</Text>
@@ -45,6 +63,32 @@ export default function FeedScreen() {
         </View>
       </View>
 
+      {/* Search bar */}
+      <View style={[styles.searchRow, searchFocused && styles.searchRowFocused]}>
+        <Text style={styles.searchIcon}>🔍</Text>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Rechercher un resto, quartier…"
+          placeholderTextColor={Colors.inkMuted}
+          value={search}
+          onChangeText={setSearch}
+          onFocus={() => setSearchFocused(true)}
+          onBlur={() => setSearchFocused(false)}
+          returnKeyType="search"
+          clearButtonMode="while-editing"
+          autoCorrect={false}
+        />
+        {search.length > 0 && (
+          <TouchableOpacity
+            onPress={() => { setSearch(''); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light) }}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={styles.searchClear}>✕</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Filter chips */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -56,7 +100,7 @@ export default function FeedScreen() {
             <TouchableOpacity
               key={cat.key}
               style={[styles.chip, isActive && styles.chipActive]}
-              onPress={() => setActiveFilter(cat.key)}
+              onPress={() => handleFilterPress(cat.key)}
               activeOpacity={0.75}
             >
               <Text style={styles.chipIcon}>{cat.icon}</Text>
@@ -91,21 +135,25 @@ export default function FeedScreen() {
         data={filtered}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <OffreCard offre={item} onPress={() => handleOffrePress(item)} />
+          <OffreCard offre={item} onPress={() => router.push(`/offre/${item.id}`)} />
         )}
         ListHeaderComponent={<Header />}
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>
-              {CATEGORIES.find(c => c.key === activeFilter)?.icon ?? '🔍'}
+              {search ? '🔍' : CATEGORIES.find(c => c.key === activeFilter)?.icon ?? '⚡'}
             </Text>
             <Text style={styles.emptyTitle}>
-              {activeFilter === 'all'
-                ? "Aucune offre pour l'instant"
-                : `Aucune offre "${CATEGORIES.find(c => c.key === activeFilter)?.label}" ce soir`}
+              {search
+                ? `Aucun résultat pour "${search}"`
+                : activeFilter === 'all'
+                  ? "Aucune offre pour l'instant"
+                  : `Aucune offre "${CATEGORIES.find(c => c.key === activeFilter)?.label}" ce soir`}
             </Text>
             <Text style={styles.emptySubtitle}>
-              Reviens ce soir — les offres arrivent en fin de journée.
+              {search
+                ? 'Essaie un autre mot-clé.'
+                : 'Reviens ce soir — les offres arrivent en fin de journée.'}
             </Text>
           </View>
         }
@@ -118,13 +166,11 @@ export default function FeedScreen() {
         }
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       />
     </View>
   )
-
-  function handleOffrePress(offre: Offre) {
-    router.push(`/offre/${offre.id}`)
-  }
 }
 
 const styles = StyleSheet.create({
@@ -140,7 +186,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-end',
     paddingHorizontal: Spacing.md,
-    paddingBottom: Spacing.md,
+    paddingBottom: Spacing.sm,
   },
   logo: {
     fontSize: 28,
@@ -175,6 +221,40 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: Colors.inkLight,
+  },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.cream,
+    borderWidth: 1,
+    borderColor: Colors.creamDark,
+    borderRadius: BorderRadius.lg,
+    marginHorizontal: Spacing.md,
+    marginBottom: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Platform.OS === 'ios' ? 10 : 6,
+    gap: 6,
+  },
+  searchRowFocused: {
+    borderColor: Colors.accent,
+    backgroundColor: '#FAF5EC',
+  },
+  searchIcon: {
+    fontSize: 15,
+    opacity: 0.6,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: Colors.ink,
+    fontWeight: '400',
+    padding: 0,
+  },
+  searchClear: {
+    fontSize: 13,
+    color: Colors.inkMuted,
+    fontWeight: '500',
+    paddingHorizontal: 4,
   },
   filtersRow: {
     paddingHorizontal: Spacing.md,
@@ -242,3 +322,4 @@ const styles = StyleSheet.create({
     fontWeight: '300',
   },
 })
+
