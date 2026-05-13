@@ -41,6 +41,21 @@ export interface Trip {
   created_at: string
 }
 
+export interface Reservation {
+  id: string
+  user_id: string
+  offre_id: string
+  commerce_nom: string
+  commerce_photo_url: string
+  offre_titre: string
+  code_promo: string
+  prix_flash: number
+  prix_normal: number
+  reduction_pct: number
+  created_at: string
+  status: 'active' | 'validated' | 'expired'
+}
+
 export interface Utilisateur {
   id: string
   email: string

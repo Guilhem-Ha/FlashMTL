@@ -94,6 +94,17 @@ function AppNavigator() {
           animation: 'slide_from_bottom',
         }}
       />
+
+      {/* Bon de réduction — modal plein écran, pas de swipe down */}
+      <Stack.Screen
+        name="offre/redemption"
+        options={{
+          headerShown: false,
+          presentation: 'fullScreenModal',
+          animation: 'slide_from_bottom',
+          gestureEnabled: false,
+        }}
+      />
     </Stack>
   )
 }

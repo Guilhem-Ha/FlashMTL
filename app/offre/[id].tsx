@@ -16,16 +16,16 @@ import {
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import * as Clipboard from 'expo-clipboard'
 import * as Haptics from 'expo-haptics'
 import MapView, { Marker } from 'react-native-maps'
 
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { useCountdown } from '../../hooks/useOffres'
-import { fetchOffreById } from '../../lib/api'
+import { fetchOffreById, createReservation, fetchMyReservationForOffer } from '../../lib/api'
+import { useAuth } from '../../lib/authContext'
 import { MOCK_OFFRES } from '../../mockData'
 import { SUPABASE_URL } from '../../constants/theme'
-import type { Offre } from '../../types'
+import type { Offre, Reservation } from '../../types'
 
 const USE_MOCK = SUPABASE_URL.includes('TON_PROJECT_ID')
 const { height } = Dimensions.get('window')
@@ -43,9 +43,12 @@ export default function OffreDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
   const insets = useSafeAreaInsets()
-  const [copied, setCopied] = useState(false)
+  const { user } = useAuth()
+
   const [offre, setOffre] = useState<Offre | null>(null)
   const [fetching, setFetching] = useState(true)
+  const [reservation, setReservation] = useState<Reservation | null>(null)
+  const [reserving, setReserving] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -59,6 +62,12 @@ export default function OffreDetailScreen() {
       setFetching(false)
     })
   }, [id])
+
+  // Check existing reservation when user + offre are loaded
+  useEffect(() => {
+    if (!user || !offre) return
+    fetchMyReservationForOffer(user.id, offre.id).then(setReservation)
+  }, [user, offre])
 
   const { timeLeft, isUrgent } = useCountdown(offre?.expire_at ?? '')
 
@@ -83,6 +92,57 @@ export default function OffreDetailScreen() {
 
   const economie = offre.prix_normal - offre.prix_flash
 
+  const openRedemption = (res: Reservation) => {
+    router.push({
+      pathname: '/offre/redemption' as any,
+      params: {
+        reservation_id: res.id,
+        offre_id: res.offre_id,
+        commerce_nom: res.commerce_nom,
+        commerce_photo_url: res.commerce_photo_url,
+        offre_titre: res.offre_titre,
+        code_promo: res.code_promo,
+        prix_flash: String(res.prix_flash),
+        prix_normal: String(res.prix_normal),
+        reduction_pct: String(res.reduction_pct),
+        status: res.status,
+      },
+    })
+  }
+
+  const handleReserver = async () => {
+    if (!user) {
+      router.push('/auth/login' as any)
+      return
+    }
+    if (reservation) {
+      openRedemption(reservation)
+      return
+    }
+    setReserving(true)
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      const res = await createReservation({
+        user_id: user.id,
+        offre_id: offre.id,
+        commerce_nom: offre.commerce.nom,
+        commerce_photo_url: offre.commerce.photo_url,
+        offre_titre: offre.titre,
+        code_promo: offre.code_promo,
+        prix_flash: offre.prix_flash,
+        prix_normal: offre.prix_normal,
+        reduction_pct: offre.reduction_pct,
+      })
+      setReservation(res)
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      openRedemption(res)
+    } catch {
+      Alert.alert('Erreur', 'Impossible de créer la réservation.')
+    } finally {
+      setReserving(false)
+    }
+  }
+
   const handleOpenMaps = () => {
     const { latitude, longitude, nom, adresse } = offre!.commerce
     const label = encodeURIComponent(`${nom} — ${adresse}`)
@@ -99,13 +159,6 @@ export default function OffreDetailScreen() {
         Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`)
       }
     })
-  }
-
-  const handleCopyCode = async () => {
-    await Clipboard.setStringAsync(offre.code_promo)
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2800)
   }
 
   const handleShare = async () => {
@@ -197,22 +250,6 @@ export default function OffreDetailScreen() {
             </View>
           </View>
 
-          <TouchableOpacity
-            style={[styles.codeBlock, copied && styles.codeBlockActive]}
-            onPress={handleCopyCode}
-            activeOpacity={0.8}
-          >
-            <View>
-              <Text style={styles.codeLabel}>Code promo</Text>
-              <Text style={styles.codeValeur}>{offre.code_promo}</Text>
-            </View>
-            <View style={[styles.copyBtn, copied && styles.copyBtnActive]}>
-              <Text style={[styles.copyBtnText, copied && styles.copyBtnTextActive]}>
-                {copied ? '✓  Copié !' : 'Copier'}
-              </Text>
-            </View>
-          </TouchableOpacity>
-
           <View style={styles.separator} />
 
           <Text style={styles.sectionLabel}>Où nous trouver</Text>
@@ -264,18 +301,25 @@ export default function OffreDetailScreen() {
       {/* ── CTA sticky ──────────────────────────────────────────── */}
       <View style={[styles.ctaContainer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <TouchableOpacity
-          style={[styles.ctaBtn, copied && styles.ctaBtnCopied]}
-          onPress={handleCopyCode}
+          style={[styles.ctaBtn, reservation && styles.ctaBtnReserved, reserving && styles.ctaBtnDisabled]}
+          onPress={handleReserver}
           activeOpacity={0.88}
-          onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}
+          disabled={reserving}
         >
-          <Text style={styles.ctaBtnText}>
-            {copied ? `Code ${offre.code_promo} copié ✓` : `J'y vais  —  ${offre.prix_flash} $`}
-          </Text>
+          {reserving
+            ? <ActivityIndicator color={Colors.cream} />
+            : <Text style={styles.ctaBtnText}>
+                {!user
+                  ? 'Connecte-toi pour réserver'
+                  : reservation
+                    ? 'Voir mon bon  →'
+                    : `Réserver  —  ${offre.prix_flash} $`}
+              </Text>
+          }
         </TouchableOpacity>
         <Text style={styles.ctaHint}>
-          {copied
-            ? "Montre ce code à la caisse pour profiter de l'offre"
+          {reservation
+            ? 'Ta réservation est confirmée ✓'
             : `Expire${timeLeft ? ' dans ' + timeLeft : ' bientôt'}  ·  ${offre.places_disponibles} places`}
         </Text>
       </View>
@@ -613,8 +657,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ctaBtnCopied: {
-    backgroundColor: Colors.success,
+  ctaBtnReserved: {
+    backgroundColor: Colors.accent,
+  },
+  ctaBtnDisabled: {
+    opacity: 0.6,
   },
   ctaBtnText: {
     fontSize: 16,

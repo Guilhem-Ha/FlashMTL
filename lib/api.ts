@@ -1,5 +1,11 @@
 import { supabase } from './supabase'
-import type { Offre, Trip } from '../types'
+import { SUPABASE_URL } from '../constants/theme'
+import type { Offre, Trip, Reservation } from '../types'
+
+const USE_MOCK = SUPABASE_URL.includes('TON_PROJECT_ID')
+
+// ── In-memory reservation store (mock mode) ───────────────────
+const _mockReservations: Reservation[] = []
 
 // ── Offres ────────────────────────────────────────────────────
 
@@ -112,6 +118,75 @@ export async function fetchMyTripIds(userId: string): Promise<string[]> {
 
   if (error) return []
   return (data ?? []).map((r: { trip_id: string }) => r.trip_id)
+}
+
+// ── Reservations ──────────────────────────────────────────────
+
+export async function createReservation(
+  data: Omit<Reservation, 'id' | 'created_at' | 'status'>,
+): Promise<Reservation> {
+  if (USE_MOCK) {
+    const res: Reservation = {
+      ...data,
+      id: Math.random().toString(36).slice(2),
+      created_at: new Date().toISOString(),
+      status: 'active',
+    }
+    _mockReservations.push(res)
+    return res
+  }
+  const { data: row, error } = await supabase
+    .from('reservations')
+    .insert([{ ...data, status: 'active' }])
+    .select()
+    .single()
+  if (error) throw new Error(error.message)
+  return row as Reservation
+}
+
+export async function fetchMyReservationForOffer(
+  userId: string,
+  offreId: string,
+): Promise<Reservation | null> {
+  if (USE_MOCK) {
+    return _mockReservations.find(
+      r => r.user_id === userId && r.offre_id === offreId,
+    ) ?? null
+  }
+  const { data, error } = await supabase
+    .from('reservations')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('offre_id', offreId)
+    .maybeSingle()
+  if (error) return null
+  return data as Reservation | null
+}
+
+export async function fetchMyReservations(userId: string): Promise<Reservation[]> {
+  if (USE_MOCK) {
+    return _mockReservations.filter(r => r.user_id === userId)
+  }
+  const { data, error } = await supabase
+    .from('reservations')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+  if (error) return []
+  return (data ?? []) as Reservation[]
+}
+
+export async function validateReservation(id: string): Promise<void> {
+  if (USE_MOCK) {
+    const r = _mockReservations.find(r => r.id === id)
+    if (r) r.status = 'validated'
+    return
+  }
+  const { error } = await supabase
+    .from('reservations')
+    .update({ status: 'validated', validated_at: new Date().toISOString() })
+    .eq('id', id)
+  if (error) throw new Error(error.message)
 }
 
 // ── Push notifications ────────────────────────────────────────

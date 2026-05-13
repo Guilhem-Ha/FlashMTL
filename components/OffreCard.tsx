@@ -114,8 +114,8 @@ export default function OffreCard({ offre, onPress }: Props) {
         <View style={styles.prixRow}>
           <Text style={styles.prixAvant}>{offre.prix_normal} $</Text>
           <Text style={styles.prixFlash}>{offre.prix_flash} $</Text>
-          <View style={styles.codeBox}>
-            <Text style={styles.codeText}>{offre.code_promo}</Text>
+          <View style={styles.lockBadge}>
+            <Text style={styles.lockText}>🔒 Réserver</Text>
           </View>
         </View>
       </View>
@@ -308,18 +308,17 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: Colors.ink,
   },
-  codeBox: {
+  lockBadge: {
     marginLeft: 'auto',
-    backgroundColor: Colors.creamDark,
+    backgroundColor: Colors.ink,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: BorderRadius.sm,
   },
-  codeText: {
+  lockText: {
     fontSize: 11,
-    fontWeight: '500',
-    color: Colors.inkLight,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    fontWeight: '600',
+    color: Colors.cream,
+    letterSpacing: 0.3,
   },
 })
