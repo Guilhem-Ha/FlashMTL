@@ -1,24 +1,72 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {
-  View, Text, StyleSheet, StatusBar,
-  TouchableOpacity, Alert,
+  View, Text, StyleSheet, StatusBar, Platform,
+  TouchableOpacity, Alert, ScrollView, ActivityIndicator,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
+import { SUPABASE_URL } from '../../constants/theme'
 import { useAuth } from '../../lib/authContext'
 import { CAMPUS_OPTIONS } from '../../lib/supabase'
+import { fetchMyTrips } from '../../lib/api'
+import { registerForPushNotifications } from '../../hooks/useNotifications'
+import { MOCK_TRIPS } from '../../mockData'
+import type { Trip } from '../../types'
+
+const USE_MOCK = SUPABASE_URL.includes('TON_PROJECT_ID')
+
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr)
+  return d.toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' })
+}
 
 export default function ProfilScreen() {
   const router = useRouter()
   const { user, session, signOut } = useAuth()
 
+  const [myTrips, setMyTrips] = useState<Trip[]>([])
+  const [tripsLoading, setTripsLoading] = useState(false)
+  const [pushEnabled, setPushEnabled] = useState<boolean | null>(null)
+
   const campusLabel = CAMPUS_OPTIONS.find(c => c.domain === user?.user_metadata?.campus)?.label
     ?? user?.user_metadata?.campus
+
+  useEffect(() => {
+    if (!user) return
+
+    // Load trips
+    setTripsLoading(true)
+    if (USE_MOCK) {
+      setMyTrips(MOCK_TRIPS.slice(0, 1))
+      setTripsLoading(false)
+    } else {
+      fetchMyTrips(user.id)
+        .then(setMyTrips)
+        .finally(() => setTripsLoading(false))
+    }
+
+    // Check push permission status
+    import('expo-notifications').then(async Notifications => {
+      const { status } = await Notifications.getPermissionsAsync()
+      setPushEnabled(status === 'granted')
+    })
+  }, [user])
+
+  const handleEnablePush = async () => {
+    const token = await registerForPushNotifications()
+    setPushEnabled(token !== null)
+    if (!token) {
+      Alert.alert(
+        'Notifications bloquées',
+        'Active les notifications dans les réglages de ton téléphone pour FlashMTL.',
+      )
+    }
+  }
 
   const handleSignOut = () => {
     Alert.alert(
       'Se déconnecter',
-      'Tu vas perdre l\'accès aux notifications push.',
+      'Tu vas être déconnecté de FlashMtl.',
       [
         { text: 'Annuler', style: 'cancel' },
         { text: 'Se déconnecter', style: 'destructive', onPress: signOut },
@@ -31,7 +79,7 @@ export default function ProfilScreen() {
     return (
       <View style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
-        <View style={styles.header}>
+        <View style={styles.headerRow}>
           <Text style={styles.logo}>Mon Profil</Text>
         </View>
 
@@ -70,50 +118,97 @@ export default function ProfilScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
-      <View style={styles.header}>
-        <Text style={styles.logo}>Mon Profil</Text>
-      </View>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
-      {/* Avatar + nom */}
-      <View style={styles.avatarBlock}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {user?.user_metadata?.prenom?.[0]?.toUpperCase() ?? '?'}
-          </Text>
+        <View style={styles.headerRow}>
+          <Text style={styles.logo}>Mon Profil</Text>
         </View>
-        <Text style={styles.prenom}>{user?.user_metadata?.prenom}</Text>
-        <Text style={styles.emailText}>{user?.email}</Text>
-      </View>
 
-      {/* Infos */}
-      <View style={styles.infoCard}>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Campus</Text>
-          <Text style={styles.infoValue}>{campusLabel ?? '—'}</Text>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Statut</Text>
+        {/* Avatar + nom */}
+        <View style={styles.avatarBlock}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {user?.user_metadata?.prenom?.[0]?.toUpperCase() ?? '?'}
+            </Text>
+          </View>
+          <Text style={styles.prenom}>{user?.user_metadata?.prenom}</Text>
+          <Text style={styles.emailText}>{user?.email}</Text>
           <View style={styles.badgeActive}>
             <View style={styles.badgeDot} />
             <Text style={styles.badgeText}>Étudiant vérifié</Text>
           </View>
         </View>
-        <View style={styles.divider} />
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Notifications push</Text>
-          <Text style={styles.infoValue}>Bientôt</Text>
-        </View>
-      </View>
 
-      {/* Déconnexion */}
-      <TouchableOpacity
-        style={styles.signOutBtn}
-        onPress={handleSignOut}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.signOutText}>Se déconnecter</Text>
-      </TouchableOpacity>
+        {/* Infos */}
+        <View style={styles.infoCard}>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Campus</Text>
+            <Text style={styles.infoValue}>{campusLabel ?? '—'}</Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Notifications push</Text>
+            {pushEnabled === null ? (
+              <ActivityIndicator size="small" color={Colors.inkMuted} />
+            ) : pushEnabled ? (
+              <View style={styles.pushOn}>
+                <View style={styles.pushDot} />
+                <Text style={styles.pushOnText}>Activées</Text>
+              </View>
+            ) : (
+              <TouchableOpacity onPress={handleEnablePush} activeOpacity={0.75}>
+                <Text style={styles.pushOffText}>Activer →</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* Mes trips */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Mes trips 🚗</Text>
+
+          {tripsLoading ? (
+            <ActivityIndicator color={Colors.accent} style={{ marginTop: Spacing.md }} />
+          ) : myTrips.length === 0 ? (
+            <View style={styles.emptyTrips}>
+              <Text style={styles.emptyTripsText}>
+                Tu n'as pas encore rejoint de trip.
+              </Text>
+              <TouchableOpacity
+                onPress={() => router.push('/(tabs)/transport' as any)}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.emptyTripsLink}>Voir les trips disponibles →</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            myTrips.map(trip => (
+              <View key={trip.id} style={styles.tripRow}>
+                <View style={styles.tripLeft}>
+                  <Text style={styles.tripDestination}>{trip.destination}</Text>
+                  <Text style={styles.tripMeta}>
+                    {formatDate(trip.date_depart)}  ·  {trip.heure_depart}  ·  {trip.lieu_depart}
+                  </Text>
+                </View>
+                <View style={styles.tripPriceBadge}>
+                  <Text style={styles.tripPrice}>{trip.prix_par_personne} $</Text>
+                </View>
+              </View>
+            ))
+          )}
+        </View>
+
+        {/* Déconnexion */}
+        <TouchableOpacity
+          style={styles.signOutBtn}
+          onPress={handleSignOut}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.signOutText}>Se déconnecter</Text>
+        </TouchableOpacity>
+
+        <View style={{ height: Spacing.xxl }} />
+      </ScrollView>
     </View>
   )
 }
@@ -123,10 +218,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  header: {
+  scrollContent: {
+    paddingBottom: Spacing.xxl,
+  },
+  headerRow: {
     paddingHorizontal: Spacing.md,
-    paddingTop: Spacing.xl,
-    paddingBottom: Spacing.lg,
+    paddingTop: Platform.OS === 'ios' ? 56 : Spacing.xl,
+    paddingBottom: Spacing.md,
   },
   logo: {
     fontSize: 28,
@@ -203,6 +301,7 @@ const styles = StyleSheet.create({
   avatarBlock: {
     alignItems: 'center',
     paddingVertical: Spacing.lg,
+    gap: 4,
   },
   avatar: {
     width: 72,
@@ -222,12 +321,32 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '800',
     color: Colors.ink,
-    marginBottom: 2,
   },
   emailText: {
     fontSize: 13,
     color: Colors.inkMuted,
     fontWeight: '300',
+  },
+  badgeActive: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#EBF5E8',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.xl,
+    marginTop: 4,
+  },
+  badgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.success,
+  },
+  badgeText: {
+    fontSize: 12,
+    color: Colors.success,
+    fontWeight: '500',
   },
   infoCard: {
     backgroundColor: Colors.cream,
@@ -257,26 +376,97 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: Colors.creamDark,
   },
-  badgeActive: {
+  pushOn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: '#EBF5E8',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.xl,
   },
-  badgeDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+  pushDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
     backgroundColor: Colors.success,
   },
-  badgeText: {
-    fontSize: 12,
+  pushOnText: {
+    fontSize: 13,
     color: Colors.success,
     fontWeight: '500',
   },
+  pushOffText: {
+    fontSize: 13,
+    color: Colors.accent,
+    fontWeight: '600',
+  },
+
+  // ── Trips section ────────────────────────────────────────────
+  section: {
+    marginHorizontal: Spacing.md,
+    marginTop: Spacing.lg,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.ink,
+    marginBottom: Spacing.sm,
+    letterSpacing: 0.2,
+  },
+  emptyTrips: {
+    backgroundColor: Colors.cream,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.creamDark,
+    padding: Spacing.md,
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  emptyTripsText: {
+    fontSize: 13,
+    color: Colors.inkMuted,
+    fontWeight: '300',
+  },
+  emptyTripsLink: {
+    fontSize: 13,
+    color: Colors.accent,
+    fontWeight: '600',
+  },
+  tripRow: {
+    backgroundColor: Colors.cream,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.creamDark,
+    padding: Spacing.md,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  tripLeft: {
+    flex: 1,
+    gap: 3,
+  },
+  tripDestination: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.ink,
+  },
+  tripMeta: {
+    fontSize: 12,
+    color: Colors.inkMuted,
+    fontWeight: '300',
+  },
+  tripPriceBadge: {
+    backgroundColor: Colors.ink,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: BorderRadius.md,
+  },
+  tripPrice: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.cream,
+  },
+
+  // ── Sign out ─────────────────────────────────────────────────
   signOutBtn: {
     marginHorizontal: Spacing.md,
     marginTop: Spacing.lg,

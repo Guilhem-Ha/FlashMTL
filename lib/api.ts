@@ -80,6 +80,19 @@ export async function leaveTrip(tripId: string, userId: string): Promise<void> {
   if (error) throw new Error(error.message)
 }
 
+export async function fetchMyTrips(userId: string): Promise<Trip[]> {
+  const { data, error } = await supabase
+    .from('trip_participants')
+    .select('trips(*)')
+    .eq('user_id', userId)
+
+  if (error) return []
+  return (data ?? [])
+    .map((r: { trips: Trip | Trip[] }) => r.trips)
+    .flat()
+    .filter(Boolean) as Trip[]
+}
+
 export async function fetchMyTripIds(userId: string): Promise<string[]> {
   const { data, error } = await supabase
     .from('trip_participants')
