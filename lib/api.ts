@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { Offre } from '../types'
+import type { Offre, Trip } from '../types'
 
 // ── Offres ────────────────────────────────────────────────────
 
@@ -36,4 +36,56 @@ export async function fetchOffreById(id: string): Promise<Offre | null> {
 
   if (error) return null
   return data as unknown as Offre
+}
+
+// ── Trips ─────────────────────────────────────────────────────
+
+export async function fetchTrips(): Promise<Trip[]> {
+  const { data, error } = await supabase
+    .from('trips')
+    .select('*')
+    .gte('date_depart', new Date().toISOString().split('T')[0])
+    .order('date_depart', { ascending: true })
+
+  if (error) throw new Error(error.message)
+  return (data ?? []) as unknown as Trip[]
+}
+
+export async function createTrip(trip: Omit<Trip, 'id' | 'created_at' | 'places_restantes'>): Promise<Trip> {
+  const { data, error } = await supabase
+    .from('trips')
+    .insert({ ...trip, places_restantes: trip.places_total })
+    .select()
+    .single()
+
+  if (error) throw new Error(error.message)
+  return data as unknown as Trip
+}
+
+export async function joinTrip(tripId: string, userId: string): Promise<void> {
+  const { error } = await supabase
+    .from('trip_participants')
+    .insert({ trip_id: tripId, user_id: userId })
+
+  if (error) throw new Error(error.message)
+}
+
+export async function leaveTrip(tripId: string, userId: string): Promise<void> {
+  const { error } = await supabase
+    .from('trip_participants')
+    .delete()
+    .eq('trip_id', tripId)
+    .eq('user_id', userId)
+
+  if (error) throw new Error(error.message)
+}
+
+export async function fetchMyTripIds(userId: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('trip_participants')
+    .select('trip_id')
+    .eq('user_id', userId)
+
+  if (error) return []
+  return (data ?? []).map((r: { trip_id: string }) => r.trip_id)
 }

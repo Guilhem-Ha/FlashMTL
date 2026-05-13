@@ -23,6 +23,7 @@ export default function RootLayout() {
         <Stack.Screen name="offre/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="auth/login" options={{ headerShown: false }} />
         <Stack.Screen name="auth/signup" options={{ headerShown: false }} />
+        <Stack.Screen name="transport/create" options={{ headerShown: false }} />
       </Stack>
     </AuthProvider>
   )
