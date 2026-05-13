@@ -10,6 +10,9 @@ import { useAuth } from '../../lib/authContext'
 import { CAMPUS_OPTIONS } from '../../lib/supabase'
 import { fetchMyTrips, fetchMyOrganizedTrips } from '../../lib/api'
 import { registerForPushNotifications } from '../../hooks/useNotifications'
+import Constants from 'expo-constants'
+
+const IS_EXPO_GO = Constants.appOwnership === 'expo'
 import { MOCK_TRIPS } from '../../mockData'
 import type { Trip } from '../../types'
 
@@ -51,11 +54,15 @@ export default function ProfilScreen() {
       }).finally(() => setTripsLoading(false))
     }
 
-    // Check push permission status
-    import('expo-notifications').then(async Notifications => {
-      const { status } = await Notifications.getPermissionsAsync()
-      setPushEnabled(status === 'granted')
-    })
+    // Check push permission status (non disponible en Expo Go)
+    if (!IS_EXPO_GO) {
+      import('expo-notifications').then(async Notifications => {
+        const { status } = await Notifications.getPermissionsAsync()
+        setPushEnabled(status === 'granted')
+      })
+    } else {
+      setPushEnabled(null) // null = masqué en Expo Go
+    }
   }, [user])
 
   const handleEnablePush = async () => {
@@ -151,22 +158,26 @@ export default function ProfilScreen() {
             <Text style={styles.infoLabel}>Campus</Text>
             <Text style={styles.infoValue}>{campusLabel ?? '—'}</Text>
           </View>
-          <View style={styles.divider} />
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Notifications push</Text>
-            {pushEnabled === null ? (
-              <ActivityIndicator size="small" color={Colors.inkMuted} />
-            ) : pushEnabled ? (
-              <View style={styles.pushOn}>
-                <View style={styles.pushDot} />
-                <Text style={styles.pushOnText}>Activées</Text>
+          {!IS_EXPO_GO && (
+            <>
+              <View style={styles.divider} />
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Notifications push</Text>
+                {pushEnabled === null ? (
+                  <ActivityIndicator size="small" color={Colors.inkMuted} />
+                ) : pushEnabled ? (
+                  <View style={styles.pushOn}>
+                    <View style={styles.pushDot} />
+                    <Text style={styles.pushOnText}>Activées</Text>
+                  </View>
+                ) : (
+                  <TouchableOpacity onPress={handleEnablePush} activeOpacity={0.75}>
+                    <Text style={styles.pushOffText}>Activer →</Text>
+                  </TouchableOpacity>
+                )}
               </View>
-            ) : (
-              <TouchableOpacity onPress={handleEnablePush} activeOpacity={0.75}>
-                <Text style={styles.pushOffText}>Activer →</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+            </>
+          )}
         </View>
 
         {/* Mes trips */}

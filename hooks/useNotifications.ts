@@ -1,28 +1,36 @@
 import { useEffect } from 'react'
 import * as Notifications from 'expo-notifications'
 import * as Device from 'expo-device'
+import Constants from 'expo-constants'
 import { Platform } from 'react-native'
 import { savePushToken } from '../lib/api'
 import { SUPABASE_URL } from '../constants/theme'
 
 const USE_MOCK = SUPABASE_URL.includes('TON_PROJECT_ID')
 
+// expo-notifications ne fonctionne pas dans Expo Go depuis SDK 53
+// Seulement disponible dans un development build ou production
+const IS_EXPO_GO = Constants.appOwnership === 'expo'
+
 // Configure how notifications are displayed while app is foregrounded
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-})
+// (no-op en Expo Go, mais n'errore pas)
+if (!IS_EXPO_GO) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  })
+}
 
 export async function registerForPushNotifications(): Promise<string | null> {
-  if (!Device.isDevice) {
-    // Simulators / emulators can't receive push notifications
-    return null
-  }
+  // Pas supporté dans Expo Go depuis SDK 53
+  if (IS_EXPO_GO) return null
+
+  if (!Device.isDevice) return null
 
   // Android: create a notification channel
   if (Platform.OS === 'android') {
@@ -50,7 +58,8 @@ export async function registerForPushNotifications(): Promise<string | null> {
 
 export function useNotifications(userId: string | undefined) {
   useEffect(() => {
-    if (!userId) return
+    // Pas de notifications en Expo Go — silencieux
+    if (IS_EXPO_GO || !userId) return
 
     // Register and save token
     registerForPushNotifications().then(async token => {
@@ -69,8 +78,7 @@ export function useNotifications(userId: string | undefined) {
     // Listen for user tapping a notification
     const subResponse = Notifications.addNotificationResponseReceivedListener(
       _response => {
-        // Could navigate to relevant screen based on
-        // _response.notification.request.content.data
+        // Navigate based on _response.notification.request.content.data
       }
     )
 
