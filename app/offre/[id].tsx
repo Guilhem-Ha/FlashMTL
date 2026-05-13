@@ -55,8 +55,8 @@ export default function OffreDetailScreen() {
   // ── Swipe-left to dismiss ─────────────────────────────────────
   const slideX = useRef(new Animated.Value(0)).current
   const bgOpacity = slideX.interpolate({
-    inputRange: [-SCREEN_WIDTH, 0],
-    outputRange: [0, 1],
+    inputRange: [0, SCREEN_WIDTH],
+    outputRange: [1, 0],
     extrapolate: 'clamp',
   })
 
@@ -64,15 +64,15 @@ export default function OffreDetailScreen() {
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponder: (_, gs) =>
-        gs.dx < -8 && Math.abs(gs.dx) > Math.abs(gs.dy) * 1.5,
+        gs.dx > 8 && Math.abs(gs.dx) > Math.abs(gs.dy) * 1.5,
       onPanResponderMove: (_, gs) => {
-        if (gs.dx < 0) slideX.setValue(gs.dx)
+        if (gs.dx > 0) slideX.setValue(gs.dx)
       },
       onPanResponderRelease: (_, gs) => {
-        if (gs.dx < -80 || gs.vx < -0.6) {
+        if (gs.dx > 80 || gs.vx > 0.6) {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
           Animated.timing(slideX, {
-            toValue: -SCREEN_WIDTH,
+            toValue: SCREEN_WIDTH,
             duration: 220,
             useNativeDriver: true,
           }).start(() => router.back())
