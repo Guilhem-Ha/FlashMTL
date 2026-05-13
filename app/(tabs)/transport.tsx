@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import {
   View,
   Text,
@@ -13,11 +13,11 @@ import {
   RefreshControl,
 } from 'react-native'
 import { useRouter } from 'expo-router'
-import { useFocusEffect, useScrollToTop } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import * as Haptics from 'expo-haptics'
-import { useScreenEntrance } from '../../hooks/useScreenEntrance'
+import { useActiveEntrance } from '../../hooks/useScreenEntrance'
+import { tabScrollCallbacks } from '../../lib/tabScrollRefs'
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { SUPABASE_URL } from '../../constants/theme'
 import { fetchTrips, joinTrip, leaveTrip, fetchMyTripIds, notifyTripOwner } from '../../lib/api'
@@ -28,19 +28,27 @@ import type { Trip } from '../../types'
 
 const USE_MOCK = SUPABASE_URL.includes('TON_PROJECT_ID')
 
-export default function TransportScreen() {
+interface Props { active?: boolean }
+
+export default function TransportScreen({ active = true }: Props) {
   const router = useRouter()
   const insets = useSafeAreaInsets()
-  const entrance = useScreenEntrance()
+  const entrance = useActiveEntrance(active)
   const { user } = useAuth()
   const flatRef = useRef<FlatList>(null)
-  useScrollToTop(flatRef)
 
   const [trips, setTrips] = useState<Trip[]>([])
   const [myTripIds, setMyTripIds] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [joiningId, setJoiningId] = useState<string | null>(null)
+
+  // Register scroll-to-top callback for tab press
+  useEffect(() => {
+    tabScrollCallbacks[1] = () =>
+      flatRef.current?.scrollToOffset({ offset: 0, animated: true })
+    return () => { tabScrollCallbacks[1] = null }
+  }, [])
 
   const load = useCallback(async () => {
     try {
@@ -58,12 +66,13 @@ export default function TransportScreen() {
     }
   }, [user])
 
-  useFocusEffect(
-    useCallback(() => {
+  // Reload data when tab becomes active (replaces useFocusEffect)
+  useEffect(() => {
+    if (active) {
       setLoading(true)
       load()
-    }, [load])
-  )
+    }
+  }, [active, load])
 
   const handleRefresh = () => {
     setRefreshing(true)
@@ -146,7 +155,7 @@ export default function TransportScreen() {
   }
 
   return (
-    <Animated.View style={[styles.root, entrance.style]}>
+    <Animated.View style={[styles.root, entrance.style]} pointerEvents="box-none">
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
 
       {/* Header */}

@@ -262,7 +262,7 @@ export default function OffreDetailScreen() {
       </ScrollView>
 
       {/* ── CTA sticky ──────────────────────────────────────────── */}
-      <View style={styles.ctaContainer}>
+      <View style={[styles.ctaContainer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <TouchableOpacity
           style={[styles.ctaBtn, copied && styles.ctaBtnCopied]}
           onPress={handleCopyCode}
@@ -603,7 +603,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     paddingHorizontal: Spacing.md,
     paddingTop: Spacing.sm + 4,
-    paddingBottom: Platform.OS === 'ios' ? 32 : Spacing.md,
     borderTopWidth: 1,
     borderTopColor: Colors.creamDark,
   },

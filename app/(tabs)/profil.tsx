@@ -5,7 +5,7 @@ import {
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useScreenEntrance } from '../../hooks/useScreenEntrance'
+import { useActiveEntrance } from '../../hooks/useScreenEntrance'
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { SUPABASE_URL } from '../../constants/theme'
 import { useAuth } from '../../lib/authContext'
@@ -25,10 +25,12 @@ function formatDate(dateStr: string): string {
   return d.toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' })
 }
 
-export default function ProfilScreen() {
+interface Props { active?: boolean }
+
+export default function ProfilScreen({ active = true }: Props) {
   const router = useRouter()
   const { user, session, signOut } = useAuth()
-  const entrance = useScreenEntrance()
+  const entrance = useActiveEntrance(active)
 
   const [myTrips, setMyTrips] = useState<Trip[]>([])
   const [myOrganizedTrips, setMyOrganizedTrips] = useState<Trip[]>([])

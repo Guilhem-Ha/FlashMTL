@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react'
+import React, { useState, useMemo, useRef, useEffect } from 'react'
 import {
   View, Text, StyleSheet, ActivityIndicator,
   RefreshControl, StatusBar, TouchableOpacity,
@@ -6,9 +6,9 @@ import {
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useScrollToTop } from '@react-navigation/native'
 import * as Haptics from 'expo-haptics'
-import { useScreenEntrance } from '../../hooks/useScreenEntrance'
+import { useActiveEntrance } from '../../hooks/useScreenEntrance'
+import { tabScrollCallbacks } from '../../lib/tabScrollRefs'
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { useOffres } from '../../hooks/useOffres'
 import OffreCard from '../../components/OffreCard'
@@ -26,10 +26,12 @@ const HEADER_COLLAPSE_START = 10
 const HEADER_COLLAPSE_END = 80
 const BACK_TO_TOP_THRESHOLD = 350
 
-export default function FeedScreen() {
+interface Props { active?: boolean }
+
+export default function FeedScreen({ active = true }: Props) {
   const router = useRouter()
   const insets = useSafeAreaInsets()
-  const entrance = useScreenEntrance()
+  const entrance = useActiveEntrance(active)
   const { offres, loading, error, refresh } = useOffres()
   const [activeFilter, setActiveFilter] = useState<OffreCategorie | 'all'>('all')
   const [search, setSearch] = useState('')
@@ -38,7 +40,13 @@ export default function FeedScreen() {
 
   // Refs
   const flatRef = useRef<Animated.FlatList<Offre>>(null)
-  useScrollToTop(flatRef as any)
+
+  // Register scroll-to-top callback for tab press
+  useEffect(() => {
+    tabScrollCallbacks[0] = () =>
+      (flatRef.current as any)?.scrollToOffset({ offset: 0, animated: true })
+    return () => { tabScrollCallbacks[0] = null }
+  }, [])
 
   // Scroll animation
   const scrollY = useRef(new Animated.Value(0)).current
