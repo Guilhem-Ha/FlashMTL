@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   View,
   Text,
@@ -13,6 +13,8 @@ import {
   Linking,
   Alert,
   Share,
+  Animated,
+  PanResponder,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -28,7 +30,7 @@ import { SUPABASE_URL } from '../../constants/theme'
 import type { Offre, Reservation } from '../../types'
 
 const USE_MOCK = SUPABASE_URL.includes('TON_PROJECT_ID')
-const { height } = Dimensions.get('window')
+const { width: SCREEN_WIDTH, height } = Dimensions.get('window')
 const IMAGE_HEIGHT = Math.min(height * 0.44, 360)
 
 const CATEGORIE_LABELS: Record<string, string> = {
@@ -49,6 +51,42 @@ export default function OffreDetailScreen() {
   const [fetching, setFetching] = useState(true)
   const [reservation, setReservation] = useState<Reservation | null>(null)
   const [reserving, setReserving] = useState(false)
+
+  // ── Swipe-left to dismiss ─────────────────────────────────────
+  const slideX = useRef(new Animated.Value(0)).current
+  const bgOpacity = slideX.interpolate({
+    inputRange: [-SCREEN_WIDTH, 0],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  })
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gs) =>
+        gs.dx < -8 && Math.abs(gs.dx) > Math.abs(gs.dy) * 1.5,
+      onPanResponderMove: (_, gs) => {
+        if (gs.dx < 0) slideX.setValue(gs.dx)
+      },
+      onPanResponderRelease: (_, gs) => {
+        if (gs.dx < -80 || gs.vx < -0.6) {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+          Animated.timing(slideX, {
+            toValue: -SCREEN_WIDTH,
+            duration: 220,
+            useNativeDriver: true,
+          }).start(() => router.back())
+        } else {
+          Animated.spring(slideX, {
+            toValue: 0,
+            useNativeDriver: true,
+            friction: 6,
+            tension: 80,
+          }).start()
+        }
+      },
+    })
+  ).current
 
   useEffect(() => {
     if (!id) return
@@ -170,7 +208,10 @@ export default function OffreDetailScreen() {
   }
 
   return (
-    <View style={styles.root}>
+    <Animated.View
+      style={[styles.root, { transform: [{ translateX: slideX }], opacity: bgOpacity }]}
+      {...panResponder.panHandlers}
+    >
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
       <ScrollView
@@ -323,7 +364,7 @@ export default function OffreDetailScreen() {
             : `Expire${timeLeft ? ' dans ' + timeLeft : ' bientôt'}  ·  ${offre.places_disponibles} places`}
         </Text>
       </View>
-    </View>
+    </Animated.View>
   )
 }
 
