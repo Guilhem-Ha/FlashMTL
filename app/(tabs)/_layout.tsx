@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text, Platform } from 'react-native'
+import { Text } from 'react-native'
 import { Tabs } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Colors } from '../../constants/theme'
@@ -14,7 +14,9 @@ function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets()
-  const tabBarHeight = 52 + (Platform.OS === 'ios' ? insets.bottom : 0)
+  // insets.bottom couvre le home indicator iOS ET la navbar Android (edgeToEdgeEnabled)
+  const bottomPad = Math.max(insets.bottom, 8)
+  const tabBarHeight = 52 + bottomPad
 
   return (
     <Tabs
@@ -26,7 +28,7 @@ export default function TabLayout() {
           borderTopWidth: 1,
           height: tabBarHeight,
           paddingTop: 8,
-          paddingBottom: Platform.OS === 'ios' ? insets.bottom : 8,
+          paddingBottom: bottomPad,
         },
         tabBarActiveTintColor: Colors.accent,
         tabBarInactiveTintColor: Colors.inkMuted,
