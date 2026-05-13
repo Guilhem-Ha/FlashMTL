@@ -8,7 +8,7 @@ import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { SUPABASE_URL } from '../../constants/theme'
 import { useAuth } from '../../lib/authContext'
 import { CAMPUS_OPTIONS } from '../../lib/supabase'
-import { fetchMyTrips } from '../../lib/api'
+import { fetchMyTrips, fetchMyOrganizedTrips } from '../../lib/api'
 import { registerForPushNotifications } from '../../hooks/useNotifications'
 import { MOCK_TRIPS } from '../../mockData'
 import type { Trip } from '../../types'
@@ -25,6 +25,7 @@ export default function ProfilScreen() {
   const { user, session, signOut } = useAuth()
 
   const [myTrips, setMyTrips] = useState<Trip[]>([])
+  const [myOrganizedTrips, setMyOrganizedTrips] = useState<Trip[]>([])
   const [tripsLoading, setTripsLoading] = useState(false)
   const [pushEnabled, setPushEnabled] = useState<boolean | null>(null)
 
@@ -38,11 +39,16 @@ export default function ProfilScreen() {
     setTripsLoading(true)
     if (USE_MOCK) {
       setMyTrips(MOCK_TRIPS.slice(0, 1))
+      setMyOrganizedTrips(MOCK_TRIPS.slice(1, 2))
       setTripsLoading(false)
     } else {
-      fetchMyTrips(user.id)
-        .then(setMyTrips)
-        .finally(() => setTripsLoading(false))
+      Promise.all([
+        fetchMyTrips(user.id),
+        fetchMyOrganizedTrips(user.id),
+      ]).then(([joined, organized]) => {
+        setMyTrips(joined)
+        setMyOrganizedTrips(organized)
+      }).finally(() => setTripsLoading(false))
     }
 
     // Check push permission status
@@ -197,6 +203,31 @@ export default function ProfilScreen() {
             ))
           )}
         </View>
+
+        {/* Trips organisés */}
+        {myOrganizedTrips.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Mes trips organisés 📋</Text>
+            {myOrganizedTrips.map(trip => (
+              <View key={trip.id} style={[styles.tripRow, styles.tripRowOrganized]}>
+                <View style={styles.tripLeft}>
+                  <View style={styles.tripOrganizerRow}>
+                    <Text style={styles.tripDestination}>{trip.destination}</Text>
+                    <View style={styles.organizerBadge}>
+                      <Text style={styles.organizerBadgeText}>Organisateur</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.tripMeta}>
+                    {formatDate(trip.date_depart)}  ·  {trip.heure_depart}  ·  {trip.places_restantes}/{trip.places_total} places
+                  </Text>
+                </View>
+                <View style={styles.tripPriceBadge}>
+                  <Text style={styles.tripPrice}>{trip.prix_par_personne} $</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Déconnexion */}
         <TouchableOpacity
@@ -464,6 +495,29 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: Colors.cream,
+  },
+
+  tripRowOrganized: {
+    borderColor: Colors.accent,
+    borderWidth: 1.5,
+  },
+  tripOrganizerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  organizerBadge: {
+    backgroundColor: Colors.accent,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+  },
+  organizerBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: Colors.ink,
+    letterSpacing: 0.3,
   },
 
   // ── Sign out ─────────────────────────────────────────────────

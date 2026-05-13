@@ -1,8 +1,8 @@
 import React from 'react'
 import {
-  View, Text, Image, TouchableOpacity,
-  StyleSheet,
+  View, Text, Image, TouchableOpacity, StyleSheet,
 } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 import { Colors, Spacing, BorderRadius } from '../constants/theme'
 import { useCountdown } from '../hooks/useOffres'
 import type { Offre } from '../types'
@@ -22,40 +22,63 @@ interface Props {
 
 export default function OffreCard({ offre, onPress }: Props) {
   const { timeLeft, isUrgent } = useCountdown(offre.expire_at)
+  const urgentPlaces = offre.places_disponibles <= 3
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.92}>
 
+      {/* ── Image hero ── */}
       <View style={styles.imageContainer}>
         <Image
           source={{ uri: offre.commerce.photo_url }}
           style={styles.image}
           resizeMode="cover"
         />
-        <View style={styles.badgeReduction}>
-          <Text style={styles.badgeText}>−{offre.reduction_pct}%</Text>
+
+        {/* Gradient overlay bottom */}
+        <LinearGradient
+          colors={['transparent', 'rgba(26,22,18,0.72)']}
+          style={styles.gradient}
+        />
+
+        {/* Badges top */}
+        <View style={styles.badgesTop}>
+          <View style={styles.badgeReduction}>
+            <Text style={styles.badgeText}>−{offre.reduction_pct}%</Text>
+          </View>
+          <View style={[styles.countdown, isUrgent && styles.countdownUrgent]}>
+            <View style={[styles.dot, isUrgent && styles.dotUrgent]} />
+            <Text style={[styles.countdownText, isUrgent && styles.countdownTextUrgent]}>
+              {timeLeft}
+            </Text>
+          </View>
         </View>
-        <View style={[styles.countdown, isUrgent && styles.countdownUrgent]}>
-          <View style={[styles.dot, isUrgent && styles.dotUrgent]} />
-          <Text style={[styles.countdownText, isUrgent && styles.countdownTextUrgent]}>
-            {timeLeft}
+
+        {/* Commerce name + quartier on image */}
+        <View style={styles.imageFooter}>
+          <Text style={styles.imageCommerce} numberOfLines={1}>
+            {offre.commerce.nom}
+          </Text>
+          <Text style={styles.imageQuartier}>
+            📍 {offre.commerce.quartier}
           </Text>
         </View>
       </View>
 
+      {/* ── Contenu ── */}
       <View style={styles.content}>
         <View style={styles.topRow}>
           <Text style={styles.categorie}>
-            {CATEGORIE_LABELS[offre.categorie]} · {offre.commerce.quartier}
+            {CATEGORIE_LABELS[offre.categorie]}
           </Text>
-          <Text style={styles.places}>
-            {offre.places_disponibles} place{offre.places_disponibles > 1 ? 's' : ''}
-          </Text>
+          <View style={[styles.placesBadge, urgentPlaces && styles.placesBadgeUrgent]}>
+            <View style={[styles.placesDot, urgentPlaces && styles.placesDotUrgent]} />
+            <Text style={[styles.placesText, urgentPlaces && styles.placesTextUrgent]}>
+              {offre.places_disponibles} place{offre.places_disponibles > 1 ? 's' : ''}
+            </Text>
+          </View>
         </View>
 
-        <Text style={styles.commerceNom} numberOfLines={1}>
-          {offre.commerce.nom}
-        </Text>
         <Text style={styles.titre} numberOfLines={2}>
           {offre.titre}
         </Text>
@@ -84,17 +107,30 @@ const styles = StyleSheet.create({
     borderColor: Colors.creamDark,
   },
   imageContainer: {
-    height: 180,
+    height: 200,
     position: 'relative',
   },
   image: {
     width: '100%',
     height: '100%',
   },
-  badgeReduction: {
+  gradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 110,
+  },
+  badgesTop: {
     position: 'absolute',
     top: Spacing.sm,
     left: Spacing.sm,
+    right: Spacing.sm,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  badgeReduction: {
     backgroundColor: Colors.ink,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -107,9 +143,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   countdown: {
-    position: 'absolute',
-    bottom: Spacing.sm,
-    right: Spacing.sm,
     backgroundColor: 'rgba(245,240,232,0.95)',
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -139,8 +172,30 @@ const styles = StyleSheet.create({
   countdownTextUrgent: {
     color: Colors.cream,
   },
+  imageFooter: {
+    position: 'absolute',
+    bottom: Spacing.sm,
+    left: Spacing.md,
+    right: Spacing.md,
+    gap: 2,
+  },
+  imageCommerce: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: Colors.cream,
+    letterSpacing: 0.2,
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  imageQuartier: {
+    fontSize: 12,
+    color: 'rgba(245,240,232,0.85)',
+    fontWeight: '400',
+  },
   content: {
     padding: Spacing.md,
+    paddingTop: Spacing.sm + 4,
   },
   topRow: {
     flexDirection: 'row',
@@ -150,20 +205,39 @@ const styles = StyleSheet.create({
   },
   categorie: {
     fontSize: 11,
-    fontWeight: '500',
+    fontWeight: '600',
     color: Colors.accent,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
-  places: {
-    fontSize: 11,
-    color: Colors.inkMuted,
+  placesBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#EBF5E8',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.xl,
   },
-  commerceNom: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.ink,
-    marginBottom: 4,
+  placesBadgeUrgent: {
+    backgroundColor: '#FDF0EE',
+  },
+  placesDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: Colors.success,
+  },
+  placesDotUrgent: {
+    backgroundColor: Colors.danger,
+  },
+  placesText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: Colors.success,
+  },
+  placesTextUrgent: {
+    color: Colors.danger,
   },
   titre: {
     fontSize: 14,

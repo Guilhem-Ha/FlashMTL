@@ -10,6 +10,8 @@ import {
   StatusBar,
   Platform,
   ActivityIndicator,
+  Linking,
+  Alert,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import * as Clipboard from 'expo-clipboard'
@@ -76,6 +78,24 @@ export default function OffreDetailScreen() {
   }
 
   const economie = offre.prix_normal - offre.prix_flash
+
+  const handleOpenMaps = () => {
+    const { latitude, longitude, nom, adresse } = offre!.commerce
+    const label = encodeURIComponent(`${nom} — ${adresse}`)
+    const url = Platform.select({
+      ios: `maps:?q=${label}&ll=${latitude},${longitude}`,
+      android: `geo:${latitude},${longitude}?q=${label}`,
+      default: `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`,
+    })
+    Linking.canOpenURL(url).then(supported => {
+      if (supported) {
+        Linking.openURL(url)
+      } else {
+        // Fallback to Google Maps web
+        Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`)
+      }
+    })
+  }
 
   const handleCopyCode = async () => {
     await Clipboard.setStringAsync(offre.code_promo)
@@ -177,6 +197,16 @@ export default function OffreDetailScreen() {
           <Text style={styles.adresse}>{offre.commerce.adresse}</Text>
           <Text style={styles.adresseQuartier}>{offre.commerce.quartier}, Montréal</Text>
 
+          <TouchableOpacity
+            style={styles.mapTouchable}
+            onPress={handleOpenMaps}
+            activeOpacity={0.9}
+          >
+            <View style={styles.mapOpenHint}>
+              <Text style={styles.mapOpenHintText}>📍 Ouvrir dans Maps</Text>
+            </View>
+          </TouchableOpacity>
+
           <View style={styles.mapContainer}>
             <MapView
               style={styles.map}
@@ -202,6 +232,7 @@ export default function OffreDetailScreen() {
               />
             </MapView>
           </View>
+
 
           <View style={{ height: 112 }} />
         </View>
@@ -477,6 +508,23 @@ const styles = StyleSheet.create({
     color: Colors.inkMuted,
     fontWeight: '300',
     marginBottom: Spacing.md,
+  },
+  mapTouchable: {
+    position: 'relative',
+  },
+  mapOpenHint: {
+    backgroundColor: Colors.ink,
+    paddingVertical: 8,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignSelf: 'flex-start',
+    marginBottom: Spacing.sm,
+  },
+  mapOpenHintText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.cream,
+    letterSpacing: 0.2,
   },
   mapContainer: {
     borderRadius: BorderRadius.lg,

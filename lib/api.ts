@@ -80,6 +80,17 @@ export async function leaveTrip(tripId: string, userId: string): Promise<void> {
   if (error) throw new Error(error.message)
 }
 
+export async function fetchMyOrganizedTrips(userId: string): Promise<Trip[]> {
+  const { data, error } = await supabase
+    .from('trips')
+    .select('*')
+    .eq('organisateur_id', userId)
+    .order('date_depart', { ascending: true })
+
+  if (error) return []
+  return (data ?? []) as unknown as Trip[]
+}
+
 export async function fetchMyTrips(userId: string): Promise<Trip[]> {
   const { data, error } = await supabase
     .from('trip_participants')
