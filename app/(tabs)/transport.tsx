@@ -13,6 +13,7 @@ import {
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useFocusEffect } from '@react-navigation/native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { SUPABASE_URL } from '../../constants/theme'
@@ -26,6 +27,7 @@ const USE_MOCK = SUPABASE_URL.includes('TON_PROJECT_ID')
 
 export default function TransportScreen() {
   const router = useRouter()
+  const insets = useSafeAreaInsets()
   const { user } = useAuth()
 
   const [trips, setTrips] = useState<Trip[]>([])
@@ -141,7 +143,7 @@ export default function TransportScreen() {
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
 
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
         <View>
           <Text style={styles.logo}>🚗 Flash Transport</Text>
           <Text style={styles.subtitle}>Covoiturage entre étudiants</Text>
@@ -173,7 +175,7 @@ export default function TransportScreen() {
               hasJoined={myTripIds.includes(item.id)}
             />
           )}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[styles.listContent, { paddingBottom: 80 + insets.bottom }]}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -204,7 +206,6 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: Spacing.md,
-    paddingTop: Platform.OS === 'ios' ? 56 : Spacing.xl,
     paddingBottom: Spacing.md,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -252,7 +253,7 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 32 : Spacing.lg,
+    bottom: Spacing.lg,
     left: Spacing.md,
     right: Spacing.md,
     backgroundColor: Colors.ink,

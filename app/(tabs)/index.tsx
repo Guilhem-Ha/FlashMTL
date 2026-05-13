@@ -5,6 +5,7 @@ import {
   TouchableOpacity, ScrollView,
 } from 'react-native'
 import { useRouter } from 'expo-router'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { useOffres } from '../../hooks/useOffres'
 import OffreCard from '../../components/OffreCard'
@@ -20,6 +21,7 @@ const CATEGORIES: { key: OffreCategorie | 'all'; label: string; icon: string }[]
 
 export default function FeedScreen() {
   const router = useRouter()
+  const insets = useSafeAreaInsets()
   const { offres, loading, error, refresh } = useOffres()
   const [activeFilter, setActiveFilter] = useState<OffreCategorie | 'all'>('all')
 
@@ -28,14 +30,9 @@ export default function FeedScreen() {
     return offres.filter(o => o.categorie === activeFilter)
   }, [offres, activeFilter])
 
-  const handleOffrePress = (offre: Offre) => {
-    router.push(`/offre/${offre.id}`)
-  }
-
   const Header = () => (
     <View>
-      {/* Title row */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
         <View>
           <Text style={styles.logo}>FlashMtl ⚡</Text>
           <Text style={styles.subtitle}>
@@ -48,7 +45,6 @@ export default function FeedScreen() {
         </View>
       </View>
 
-      {/* Filter chips */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -76,12 +72,14 @@ export default function FeedScreen() {
 
   if (loading) return (
     <View style={styles.centered}>
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
       <ActivityIndicator color={Colors.accent} size="large" />
     </View>
   )
 
   if (error) return (
     <View style={styles.centered}>
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
       <Text style={styles.errorText}>{error}</Text>
     </View>
   )
@@ -103,7 +101,7 @@ export default function FeedScreen() {
             </Text>
             <Text style={styles.emptyTitle}>
               {activeFilter === 'all'
-                ? 'Aucune offre pour l\'instant'
+                ? "Aucune offre pour l'instant"
                 : `Aucune offre "${CATEGORIES.find(c => c.key === activeFilter)?.label}" ce soir`}
             </Text>
             <Text style={styles.emptySubtitle}>
@@ -123,6 +121,10 @@ export default function FeedScreen() {
       />
     </View>
   )
+
+  function handleOffrePress(offre: Offre) {
+    router.push(`/offre/${offre.id}`)
+  }
 }
 
 const styles = StyleSheet.create({
@@ -138,7 +140,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-end',
     paddingHorizontal: Spacing.md,
-    paddingTop: Spacing.xl,
     paddingBottom: Spacing.md,
   },
   logo: {

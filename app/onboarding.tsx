@@ -84,6 +84,12 @@ export default function OnboardingScreen() {
         pagingEnabled
         scrollEnabled={false}
         showsHorizontalScrollIndicator={false}
+        getItemLayout={(_, index) => ({
+          length: width,
+          offset: width * index,
+          index,
+        })}
+        initialNumToRender={SLIDES.length}
         renderItem={({ item }) => (
           <View style={styles.slide}>
             <Text style={styles.icon}>{item.icon}</Text>

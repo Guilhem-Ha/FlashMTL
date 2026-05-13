@@ -14,6 +14,7 @@ import {
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import DateTimePicker from '@react-native-community/datetimepicker'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { SUPABASE_URL } from '../../constants/theme'
@@ -57,6 +58,7 @@ const fieldStyles = StyleSheet.create({
 
 export default function CreateTripScreen() {
   const router = useRouter()
+  const insets = useSafeAreaInsets()
   const { user } = useAuth()
 
   const [destination, setDestination] = useState('')
@@ -129,7 +131,7 @@ export default function CreateTripScreen() {
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
 
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + Spacing.sm }]}>
         <TouchableOpacity
           onPress={() => router.back()}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -266,7 +268,7 @@ export default function CreateTripScreen() {
       </KeyboardAvoidingView>
 
       {/* Submit */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + Spacing.sm }]}>
         <TouchableOpacity
           style={[styles.submitBtn, submitting && styles.submitBtnDisabled]}
           onPress={handleSubmit}
@@ -294,7 +296,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.md,
-    paddingTop: Platform.OS === 'ios' ? 56 : Spacing.xl,
     paddingBottom: Spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: Colors.creamDark,
@@ -396,7 +397,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     paddingHorizontal: Spacing.md,
     paddingTop: Spacing.sm,
-    paddingBottom: Platform.OS === 'ios' ? 36 : Spacing.md,
     borderTopWidth: 1,
     borderTopColor: Colors.creamDark,
   },

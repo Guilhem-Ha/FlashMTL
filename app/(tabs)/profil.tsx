@@ -4,6 +4,7 @@ import {
   TouchableOpacity, Alert, ScrollView, ActivityIndicator,
 } from 'react-native'
 import { useRouter } from 'expo-router'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { SUPABASE_URL } from '../../constants/theme'
 import { useAuth } from '../../lib/authContext'
@@ -32,6 +33,7 @@ export default function ProfilScreen() {
   const [tripsLoading, setTripsLoading] = useState(false)
   const [pushEnabled, setPushEnabled] = useState<boolean | null>(null)
 
+  const insets = useSafeAreaInsets()
   const campusLabel = CAMPUS_OPTIONS.find(c => c.domain === user?.user_metadata?.campus)?.label
     ?? user?.user_metadata?.campus
 
@@ -92,7 +94,7 @@ export default function ProfilScreen() {
     return (
       <View style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
-        <View style={styles.headerRow}>
+        <View style={[styles.headerRow, { paddingTop: insets.top + Spacing.md }]}>
           <Text style={styles.logo}>Mon Profil</Text>
         </View>
 
@@ -133,7 +135,7 @@ export default function ProfilScreen() {
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
-        <View style={styles.headerRow}>
+        <View style={[styles.headerRow, { paddingTop: insets.top + Spacing.md }]}>
           <Text style={styles.logo}>Mon Profil</Text>
         </View>
 
@@ -265,7 +267,6 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     paddingHorizontal: Spacing.md,
-    paddingTop: Platform.OS === 'ios' ? 56 : Spacing.xl,
     paddingBottom: Spacing.md,
   },
   logo: {

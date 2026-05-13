@@ -14,6 +14,7 @@ import {
   Alert,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as Clipboard from 'expo-clipboard'
 import MapView, { Marker } from 'react-native-maps'
 
@@ -39,6 +40,7 @@ const CATEGORIE_LABELS: Record<string, string> = {
 export default function OffreDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
+  const insets = useSafeAreaInsets()
   const [copied, setCopied] = useState(false)
   const [offre, setOffre] = useState<Offre | null>(null)
   const [fetching, setFetching] = useState(true)
@@ -121,14 +123,14 @@ export default function OffreDetailScreen() {
           <View style={styles.heroGradient} />
 
           <TouchableOpacity
-            style={styles.backBtn}
+            style={[styles.backBtn, { top: insets.top + 12 }]}
             onPress={() => router.back()}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Text style={styles.backBtnText}>←</Text>
           </TouchableOpacity>
 
-          <View style={styles.badgeReduction}>
+          <View style={[styles.badgeReduction, { top: insets.top + 12 }]}>
             <Text style={styles.badgeText}>−{offre.reduction_pct}%</Text>
           </View>
 
@@ -198,16 +200,10 @@ export default function OffreDetailScreen() {
           <Text style={styles.adresseQuartier}>{offre.commerce.quartier}, Montréal</Text>
 
           <TouchableOpacity
-            style={styles.mapTouchable}
+            style={styles.mapContainer}
             onPress={handleOpenMaps}
-            activeOpacity={0.9}
+            activeOpacity={1}
           >
-            <View style={styles.mapOpenHint}>
-              <Text style={styles.mapOpenHintText}>📍 Ouvrir dans Maps</Text>
-            </View>
-          </TouchableOpacity>
-
-          <View style={styles.mapContainer}>
             <MapView
               style={styles.map}
               initialRegion={{
@@ -220,6 +216,7 @@ export default function OffreDetailScreen() {
               zoomEnabled={false}
               pitchEnabled={false}
               rotateEnabled={false}
+              pointerEvents="none"
             >
               <Marker
                 coordinate={{
@@ -231,7 +228,13 @@ export default function OffreDetailScreen() {
                 pinColor={Colors.accent}
               />
             </MapView>
-          </View>
+            {/* Hint overlay */}
+            <View style={styles.mapHintOverlay}>
+              <View style={styles.mapHintBadge}>
+                <Text style={styles.mapHintText}>📍 Ouvrir dans Maps</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
 
 
           <View style={{ height: 112 }} />
@@ -284,7 +287,7 @@ const styles = StyleSheet.create({
   },
   backBtn: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 56 : 40,
+    top: 0, // overridden inline with insets
     left: Spacing.md,
     width: 40,
     height: 40,
@@ -301,7 +304,7 @@ const styles = StyleSheet.create({
   },
   badgeReduction: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 56 : 40,
+    top: 0, // overridden inline with insets
     right: Spacing.md,
     backgroundColor: Colors.ink,
     paddingHorizontal: 12,
@@ -509,33 +512,34 @@ const styles = StyleSheet.create({
     fontWeight: '300',
     marginBottom: Spacing.md,
   },
-  mapTouchable: {
-    position: 'relative',
-  },
-  mapOpenHint: {
-    backgroundColor: Colors.ink,
-    paddingVertical: 8,
-    paddingHorizontal: Spacing.md,
-    borderRadius: BorderRadius.md,
-    alignSelf: 'flex-start',
-    marginBottom: Spacing.sm,
-  },
-  mapOpenHintText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.cream,
-    letterSpacing: 0.2,
-  },
   mapContainer: {
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: Colors.creamDark,
     height: 200,
+    position: 'relative',
   },
   map: {
     width: '100%',
     height: '100%',
+  },
+  mapHintOverlay: {
+    position: 'absolute',
+    bottom: Spacing.sm,
+    right: Spacing.sm,
+  },
+  mapHintBadge: {
+    backgroundColor: 'rgba(26,22,18,0.82)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.md,
+  },
+  mapHintText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.cream,
+    letterSpacing: 0.2,
   },
   notFound: {
     flex: 1,
