@@ -1,11 +1,12 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useRef } from 'react'
 import {
-  View, Text, FlatList, StyleSheet,
-  ActivityIndicator, RefreshControl, StatusBar,
-  TouchableOpacity, ScrollView, TextInput, Platform,
+  View, Text, StyleSheet, ActivityIndicator,
+  RefreshControl, StatusBar, TouchableOpacity,
+  ScrollView, TextInput, Platform, Animated,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useScrollToTop } from '@react-navigation/native'
 import * as Haptics from 'expo-haptics'
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { useOffres } from '../../hooks/useOffres'
@@ -20,6 +21,10 @@ const CATEGORIES: { key: OffreCategorie | 'all'; label: string; icon: string }[]
   { key: 'activite', label: 'Activités', icon: '🎯' },
 ]
 
+const HEADER_COLLAPSE_START = 10
+const HEADER_COLLAPSE_END = 80
+const BACK_TO_TOP_THRESHOLD = 350
+
 export default function FeedScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
@@ -27,6 +32,56 @@ export default function FeedScreen() {
   const [activeFilter, setActiveFilter] = useState<OffreCategorie | 'all'>('all')
   const [search, setSearch] = useState('')
   const [searchFocused, setSearchFocused] = useState(false)
+  const [showBackToTop, setShowBackToTop] = useState(false)
+
+  // Refs
+  const flatRef = useRef<Animated.FlatList<Offre>>(null)
+  useScrollToTop(flatRef as any)
+
+  // Scroll animation
+  const scrollY = useRef(new Animated.Value(0)).current
+
+  const titleOpacity = scrollY.interpolate({
+    inputRange: [HEADER_COLLAPSE_START, HEADER_COLLAPSE_END],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  })
+  const titleTranslateY = scrollY.interpolate({
+    inputRange: [HEADER_COLLAPSE_START, HEADER_COLLAPSE_END],
+    outputRange: [0, -16],
+    extrapolate: 'clamp',
+  })
+  const titleHeight = scrollY.interpolate({
+    inputRange: [HEADER_COLLAPSE_START, HEADER_COLLAPSE_END],
+    outputRange: [52, 0],
+    extrapolate: 'clamp',
+  })
+
+  const backToTopOpacity = useRef(new Animated.Value(0)).current
+
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+    {
+      useNativeDriver: false,
+      listener: (e: any) => {
+        const y = e.nativeEvent.contentOffset.y
+        const shouldShow = y > BACK_TO_TOP_THRESHOLD
+        if (shouldShow !== showBackToTop) {
+          setShowBackToTop(shouldShow)
+          Animated.timing(backToTopOpacity, {
+            toValue: shouldShow ? 1 : 0,
+            duration: 200,
+            useNativeDriver: true,
+          }).start()
+        }
+      },
+    }
+  )
+
+  const scrollToTop = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    ;(flatRef.current as any)?.scrollToOffset({ offset: 0, animated: true })
+  }
 
   const filtered = useMemo(() => {
     let result = offres
@@ -49,8 +104,19 @@ export default function FeedScreen() {
 
   const Header = () => (
     <View>
-      {/* Title row */}
-      <View style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
+      {/* Title row — s'efface au scroll */}
+      <Animated.View
+        style={[
+          styles.header,
+          {
+            paddingTop: insets.top + Spacing.md,
+            opacity: titleOpacity,
+            transform: [{ translateY: titleTranslateY }],
+            height: Animated.add(titleHeight, insets.top + Spacing.md + Spacing.md),
+            overflow: 'hidden',
+          },
+        ]}
+      >
         <View>
           <Text style={styles.logo}>FlashMtl ⚡</Text>
           <Text style={styles.subtitle}>
@@ -61,7 +127,7 @@ export default function FeedScreen() {
           <View style={styles.liveDot} />
           <Text style={styles.liveText}>En direct</Text>
         </View>
-      </View>
+      </Animated.View>
 
       {/* Search bar */}
       <View style={[styles.searchRow, searchFocused && styles.searchRowFocused]}>
@@ -75,7 +141,6 @@ export default function FeedScreen() {
           onFocus={() => setSearchFocused(true)}
           onBlur={() => setSearchFocused(false)}
           returnKeyType="search"
-          clearButtonMode="while-editing"
           autoCorrect={false}
         />
         {search.length > 0 && (
@@ -131,7 +196,9 @@ export default function FeedScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
-      <FlatList
+
+      <Animated.FlatList
+        ref={flatRef}
         data={filtered}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
@@ -151,9 +218,7 @@ export default function FeedScreen() {
                   : `Aucune offre "${CATEGORIES.find(c => c.key === activeFilter)?.label}" ce soir`}
             </Text>
             <Text style={styles.emptySubtitle}>
-              {search
-                ? 'Essaie un autre mot-clé.'
-                : 'Reviens ce soir — les offres arrivent en fin de journée.'}
+              {search ? 'Essaie un autre mot-clé.' : 'Reviens ce soir — les offres arrivent en fin de journée.'}
             </Text>
           </View>
         }
@@ -164,11 +229,27 @@ export default function FeedScreen() {
             tintColor={Colors.accent}
           />
         }
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       />
+
+      {/* Bouton retour en haut */}
+      <Animated.View
+        style={[styles.backToTop, { opacity: backToTopOpacity, bottom: insets.bottom + 16 }]}
+        pointerEvents={showBackToTop ? 'auto' : 'none'}
+      >
+        <TouchableOpacity
+          style={styles.backToTopBtn}
+          onPress={scrollToTop}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.backToTopText}>↑ Haut</Text>
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   )
 }
@@ -321,5 +402,25 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontWeight: '300',
   },
+  backToTop: {
+    position: 'absolute',
+    alignSelf: 'center',
+  },
+  backToTopBtn: {
+    backgroundColor: Colors.ink,
+    paddingHorizontal: 18,
+    paddingVertical: 9,
+    borderRadius: 20,
+    shadowColor: Colors.ink,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  backToTopText: {
+    color: Colors.cream,
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
 })
-

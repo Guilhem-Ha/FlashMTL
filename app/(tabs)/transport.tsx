@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useRef } from 'react'
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
   RefreshControl,
 } from 'react-native'
 import { useRouter } from 'expo-router'
-import { useFocusEffect } from '@react-navigation/native'
+import { useFocusEffect, useScrollToTop } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import * as Haptics from 'expo-haptics'
@@ -30,6 +30,8 @@ export default function TransportScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { user } = useAuth()
+  const flatRef = useRef<FlatList>(null)
+  useScrollToTop(flatRef)
 
   const [trips, setTrips] = useState<Trip[]>([])
   const [myTripIds, setMyTripIds] = useState<string[]>([])
@@ -167,6 +169,7 @@ export default function TransportScreen() {
         </View>
       ) : (
         <FlatList
+          ref={flatRef}
           data={trips}
           keyExtractor={item => item.id}
           renderItem={({ item }) => (

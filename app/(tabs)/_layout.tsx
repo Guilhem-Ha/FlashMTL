@@ -1,20 +1,32 @@
-import React from 'react'
-import { Text } from 'react-native'
+import React, { useRef, useEffect } from 'react'
+import { Text, Animated } from 'react-native'
 import { Tabs } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import * as Haptics from 'expo-haptics'
 import { Colors } from '../../constants/theme'
 
 function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
+  const scale = useRef(new Animated.Value(1)).current
+
+  useEffect(() => {
+    if (focused) {
+      Animated.sequence([
+        Animated.timing(scale, { toValue: 1.25, duration: 120, useNativeDriver: true }),
+        Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 4 }),
+      ]).start()
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    }
+  }, [focused])
+
   return (
-    <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.45 }}>
+    <Animated.Text style={{ fontSize: 22, opacity: focused ? 1 : 0.4, transform: [{ scale }] }}>
       {emoji}
-    </Text>
+    </Animated.Text>
   )
 }
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets()
-  // insets.bottom couvre le home indicator iOS ET la navbar Android (edgeToEdgeEnabled)
   const bottomPad = Math.max(insets.bottom, 8)
   const tabBarHeight = 52 + bottomPad
 

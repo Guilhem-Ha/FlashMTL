@@ -35,7 +35,16 @@ function AppNavigator() {
       <Stack.Screen name="offre/[id]" options={{ headerShown: false }} />
       <Stack.Screen name="auth/login" options={{ headerShown: false }} />
       <Stack.Screen name="auth/signup" options={{ headerShown: false }} />
-      <Stack.Screen name="transport/create" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="transport/create"
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          gestureEnabled: true,
+          gestureDirection: 'vertical',
+          animation: 'slide_from_bottom',
+        }}
+      />
     </Stack>
   )
 }
