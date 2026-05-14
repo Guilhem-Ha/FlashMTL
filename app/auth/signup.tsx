@@ -10,6 +10,7 @@ import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { useAuth } from '../../lib/authContext'
 import { isUniversityEmail, CAMPUS_OPTIONS } from '../../lib/supabase'
 import Wordmark from '../../components/Wordmark'
+import { t } from '../../lib/i18n'
 
 export default function SignupScreen() {
   const router = useRouter()
@@ -26,12 +27,12 @@ export default function SignupScreen() {
   const [success, setSuccess] = useState(false)
 
   const validate = (): string | null => {
-    if (!prenom.trim()) return 'Entre ton prénom.'
-    if (!email.trim()) return 'Entre ton email.'
-    if (!isUniversityEmail(email)) return 'Utilise un email universitaire montréalais (ex: @umontreal.ca).'
-    if (password.length < 8) return 'Le mot de passe doit faire au moins 8 caractères.'
-    if (password !== confirm) return 'Les mots de passe ne correspondent pas.'
-    if (!campus) return 'Sélectionne ton campus.'
+    if (!prenom.trim()) return t('auth.signup.errorPrenom')
+    if (!email.trim()) return t('auth.signup.errorEmail')
+    if (!isUniversityEmail(email)) return t('auth.signup.errorEmailInvalid')
+    if (password.length < 8) return t('auth.signup.errorPasswordShort')
+    if (password !== confirm) return t('auth.signup.errorPasswordMatch')
+    if (!campus) return t('auth.signup.errorCampus')
     return null
   }
 
@@ -46,7 +47,7 @@ export default function SignupScreen() {
 
     if (error) {
       if (error.includes('already registered')) {
-        setError('Cet email est déjà utilisé. Connecte-toi.')
+        setError(t('auth.signup.errorAlreadyUsed'))
       } else {
         setError(error)
       }
@@ -59,14 +60,16 @@ export default function SignupScreen() {
     return (
       <View style={styles.successContainer}>
         <Text style={styles.successIcon}>✉️</Text>
-        <Text style={styles.successTitle}>Vérifie tes emails !</Text>
+        <Text style={styles.successTitle}>{t('auth.signup.successTitle')}</Text>
         <Text style={styles.successText}>
-          Un lien de confirmation a été envoyé à{'\n'}
-          <Text style={{ fontWeight: '600', color: Colors.ink }}>{email}</Text>
-          {'\n\n'}Clique le lien pour activer ton compte.
+          {t('auth.signup.successBody', { email }).split(email).map((part, i, arr) =>
+            i < arr.length - 1
+              ? [part, <Text key={i} style={{ fontWeight: '600', color: Colors.ink }}>{email}</Text>]
+              : part
+          )}
         </Text>
         <TouchableOpacity style={styles.btn} onPress={() => router.replace('/auth/login' as any)}>
-          <Text style={styles.btnText}>Aller à la connexion</Text>
+          <Text style={styles.btnText}>{t('auth.signup.successCta')}</Text>
         </TouchableOpacity>
       </View>
     )
@@ -86,22 +89,22 @@ export default function SignupScreen() {
         {/* Logo */}
         <View style={styles.logoBlock}>
           <Wordmark size={44} />
-          <Text style={styles.logoSub}>Covoiturage étudiant · Montréal</Text>
+          <Text style={styles.logoSub}>{t('auth.tagline')}</Text>
         </View>
 
         {/* Card */}
         <View style={styles.card}>
-          <Text style={styles.title}>Créer un compte</Text>
-          <Text style={styles.subtitle}>Email universitaire requis</Text>
+          <Text style={styles.title}>{t('auth.signup.title')}</Text>
+          <Text style={styles.subtitle}>{t('auth.signup.subtitle')}</Text>
 
           {/* Prénom */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Prénom</Text>
+            <Text style={styles.label}>{t('auth.signup.prenomLabel')}</Text>
             <TextInput
               style={styles.input}
               value={prenom}
               onChangeText={setPrenom}
-              placeholder="Ton prénom"
+              placeholder={t('auth.signup.prenomPlaceholder')}
               placeholderTextColor={Colors.inkMuted}
               autoCapitalize="words"
             />
@@ -109,7 +112,7 @@ export default function SignupScreen() {
 
           {/* Email */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Email universitaire</Text>
+            <Text style={styles.label}>{t('auth.signup.emailLabel')}</Text>
             <TextInput
               style={[
                 styles.input,
@@ -117,22 +120,20 @@ export default function SignupScreen() {
               ]}
               value={email}
               onChangeText={setEmail}
-              placeholder="prenom.nom@umontreal.ca"
+              placeholder={t('auth.signup.emailPlaceholder')}
               placeholderTextColor={Colors.inkMuted}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
             />
             {email.length > 4 && !isUniversityEmail(email) && (
-              <Text style={styles.fieldHint}>
-                Domaines acceptés : umontreal, mcgill, concordia, polymtl, hec, uqam, etsmtl
-              </Text>
+              <Text style={styles.fieldHint}>{t('auth.signup.emailHint')}</Text>
             )}
           </View>
 
           {/* Campus */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Campus</Text>
+            <Text style={styles.label}>{t('auth.signup.campusLabel')}</Text>
             <View style={styles.campusGrid}>
               {CAMPUS_OPTIONS.map(opt => (
                 <TouchableOpacity
@@ -151,12 +152,12 @@ export default function SignupScreen() {
 
           {/* Password */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Mot de passe</Text>
+            <Text style={styles.label}>{t('auth.signup.passwordLabel')}</Text>
             <TextInput
               style={styles.input}
               value={password}
               onChangeText={setPassword}
-              placeholder="8 caractères minimum"
+              placeholder={t('auth.signup.passwordPlaceholder')}
               placeholderTextColor={Colors.inkMuted}
               secureTextEntry
             />
@@ -164,7 +165,7 @@ export default function SignupScreen() {
 
           {/* Confirm */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Confirmer le mot de passe</Text>
+            <Text style={styles.label}>{t('auth.signup.confirmLabel')}</Text>
             <TextInput
               style={[
                 styles.input,
@@ -194,16 +195,16 @@ export default function SignupScreen() {
           >
             {loading
               ? <ActivityIndicator color={Colors.cream} />
-              : <Text style={styles.btnText}>Créer mon compte</Text>
+              : <Text style={styles.btnText}>{t('auth.signup.submit')}</Text>
             }
           </TouchableOpacity>
         </View>
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Déjà un compte ? </Text>
+          <Text style={styles.footerText}>{t('auth.signup.footerText')}</Text>
           <TouchableOpacity onPress={() => router.replace('/auth/login' as any)}>
-            <Text style={styles.footerLink}>Se connecter</Text>
+            <Text style={styles.footerLink}>{t('auth.signup.footerLink')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

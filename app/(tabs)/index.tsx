@@ -12,20 +12,10 @@ import { SUPABASE_URL } from '../../constants/theme'
 import { fetchMyTrips, fetchMyOrganizedTrips } from '../../lib/api'
 import { MOCK_TRIPS } from '../../mockData'
 import { useAuth } from '../../lib/authContext'
+import { t, localDate } from '../../lib/i18n'
 import type { Trip } from '../../types'
 
 const USE_MOCK = SUPABASE_URL.includes('TON_PROJECT_ID')
-
-const TYPE_LABELS: Record<string, string> = {
-  aller_simple: 'Aller simple',
-  aller_retour: 'Aller-retour',
-  recurrent: 'Récurrent',
-}
-
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('fr-CA', { weekday: 'short', day: 'numeric', month: 'short' })
-}
 
 interface Props { active?: boolean }
 
@@ -88,29 +78,27 @@ export default function MesTripsScreen({ active = true }: Props) {
       <Animated.View style={[styles.root, entrance.style]}>
         <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
         <View style={[styles.headerRow, { paddingTop: insets.top + Spacing.md }]}>
-          <Text style={styles.headerTitle}>Mes trajets</Text>
+          <Text style={styles.headerTitle}>{t('mesTrips.header')}</Text>
         </View>
         <View style={styles.guestContainer}>
           <Text style={styles.guestIcon}>🎒</Text>
-          <Text style={styles.guestTitle}>Tes trajets ici</Text>
-          <Text style={styles.guestText}>
-            Connecte-toi pour voir les covoiturages que tu as organisés ou rejoints.
-          </Text>
+          <Text style={styles.guestTitle}>{t('mesTrips.guestTitle')}</Text>
+          <Text style={styles.guestText}>{t('mesTrips.guestText')}</Text>
           <TouchableOpacity
             style={styles.btnPrimary}
             onPress={() => router.push('/auth/signup' as any)}
             activeOpacity={0.85}
           >
-            <Text style={styles.btnPrimaryText}>Créer un compte étudiant</Text>
+            <Text style={styles.btnPrimaryText}>{t('common.createStudentAccount')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.btnSecondary}
             onPress={() => router.push('/auth/login' as any)}
             activeOpacity={0.85}
           >
-            <Text style={styles.btnSecondaryText}>Se connecter</Text>
+            <Text style={styles.btnSecondaryText}>{t('common.signIn')}</Text>
           </TouchableOpacity>
-          <Text style={styles.guestNote}>Réservé aux étudiants des universités montréalaises</Text>
+          <Text style={styles.guestNote}>{t('mesTrips.guestNote')}</Text>
         </View>
       </Animated.View>
     )
@@ -122,7 +110,7 @@ export default function MesTripsScreen({ active = true }: Props) {
       <Animated.View style={[styles.root, entrance.style]}>
         <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
         <View style={[styles.headerRow, { paddingTop: insets.top + Spacing.md }]}>
-          <Text style={styles.headerTitle}>Mes trajets</Text>
+          <Text style={styles.headerTitle}>{t('mesTrips.header')}</Text>
         </View>
         <View style={styles.centered}>
           <ActivityIndicator color={Colors.accent} size="large" />
@@ -153,23 +141,21 @@ export default function MesTripsScreen({ active = true }: Props) {
         }
       >
         <View style={styles.headerRow}>
-          <Text style={styles.headerTitle}>Mes trajets</Text>
+          <Text style={styles.headerTitle}>{t('mesTrips.header')}</Text>
         </View>
 
         {/* Empty global */}
         {!hasAny && (
           <View style={styles.emptyGlobal}>
             <Text style={styles.emptyGlobalIcon}>🗺️</Text>
-            <Text style={styles.emptyGlobalTitle}>Aucun trajet pour l'instant</Text>
-            <Text style={styles.emptyGlobalText}>
-              Rejoins un covoiturage dans l'onglet Trajets, ou propose le tien.
-            </Text>
+            <Text style={styles.emptyGlobalTitle}>{t('mesTrips.emptyTitle')}</Text>
+            <Text style={styles.emptyGlobalText}>{t('mesTrips.emptyText')}</Text>
             <TouchableOpacity
               style={styles.btnPrimary}
               onPress={() => router.push('/transport/create' as any)}
               activeOpacity={0.85}
             >
-              <Text style={styles.btnPrimaryText}>Proposer un trip</Text>
+              <Text style={styles.btnPrimaryText}>{t('common.proposeTrip')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -177,7 +163,7 @@ export default function MesTripsScreen({ active = true }: Props) {
         {/* ── Organisés ── */}
         {organizedTrips.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>📋 Organisés par toi</Text>
+            <Text style={styles.sectionTitle}>{t('mesTrips.sectionOrganized')}</Text>
             {organizedTrips.map(trip => (
               <TripRow key={trip.id} trip={trip} isOrganized />
             ))}
@@ -187,7 +173,7 @@ export default function MesTripsScreen({ active = true }: Props) {
         {/* ── Rejoints ── */}
         {joinedTrips.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🎒 Trips rejoints</Text>
+            <Text style={styles.sectionTitle}>{t('mesTrips.sectionJoined')}</Text>
             {joinedTrips.map(trip => (
               <TripRow key={trip.id} trip={trip} isOrganized={false} />
             ))}
@@ -201,7 +187,7 @@ export default function MesTripsScreen({ active = true }: Props) {
         onPress={() => router.push('/transport/create' as any)}
         activeOpacity={0.88}
       >
-        <Text style={styles.fabText}>+  Proposer un trip</Text>
+        <Text style={styles.fabText}>{t('common.proposeTrip')}</Text>
       </TouchableOpacity>
     </Animated.View>
   )
@@ -209,7 +195,7 @@ export default function MesTripsScreen({ active = true }: Props) {
 
 function TripRow({ trip, isOrganized }: { trip: Trip; isOrganized: boolean }) {
   const route = `${trip.ville_depart || 'Montréal'} → ${trip.destination}`
-  const typeLabel = trip.type ? TYPE_LABELS[trip.type] : null
+  const typeLabel = trip.type ? t(`mesTrips.tripTypes.${trip.type}`) : null
 
   return (
     <View style={[styles.tripCard, isOrganized && styles.tripCardOrganized]}>
@@ -218,7 +204,7 @@ function TripRow({ trip, isOrganized }: { trip: Trip; isOrganized: boolean }) {
         <View style={styles.tripBadges}>
           {isOrganized && (
             <View style={styles.orgBadge}>
-              <Text style={styles.orgBadgeText}>Organisateur</Text>
+              <Text style={styles.orgBadgeText}>{t('mesTrips.badgeOrganizer')}</Text>
             </View>
           )}
           {typeLabel && (
@@ -229,16 +215,16 @@ function TripRow({ trip, isOrganized }: { trip: Trip; isOrganized: boolean }) {
         </View>
       </View>
       <Text style={styles.tripMeta}>
-        {formatDate(trip.date_depart)} · {trip.heure_depart} · {trip.lieu_depart}
+        {localDate(trip.date_depart)} · {trip.heure_depart} · {trip.lieu_depart}
       </Text>
       <View style={styles.tripFooter}>
         {isOrganized && (
           <Text style={styles.tripPlaces}>
-            {trip.places_restantes}/{trip.places_total} places libres
+            {trip.places_restantes}/{trip.places_total} {t('mesTrips.places', { count: trip.places_restantes })}
           </Text>
         )}
         <View style={styles.priceBadge}>
-          <Text style={styles.priceText}>{trip.prix_par_personne} $ / pers.</Text>
+          <Text style={styles.priceText}>{t('mesTrips.pricePerPerson', { price: trip.prix_par_personne })}</Text>
         </View>
       </View>
     </View>

@@ -5,22 +5,13 @@ import {
 import { LinearGradient } from 'expo-linear-gradient'
 import * as Haptics from 'expo-haptics'
 import { Colors, Spacing, BorderRadius } from '../constants/theme'
+import { t, localDate } from '../lib/i18n'
 import type { Trip } from '../types'
 
 const TYPE_ICON: Record<string, string> = {
   aller_simple: '→',
   aller_retour: '↔',
   recurrent: '↺',
-}
-const TYPE_LABEL: Record<string, string> = {
-  aller_simple: 'Aller simple',
-  aller_retour: 'Aller-retour',
-  recurrent: 'Récurrent',
-}
-
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('fr-CA', { weekday: 'short', day: 'numeric', month: 'short' })
 }
 
 // Initiale de l'organisateur à partir de son ID (déterministe, pour les mocks)
@@ -51,7 +42,7 @@ export default function TripCard({ trip, onJoin, isOwner, hasJoined, joiningId }
 
   const villeDep = trip.ville_depart || 'Montréal'
   const typeIcon = trip.type ? TYPE_ICON[trip.type] : '→'
-  const typeLabel = trip.type ? TYPE_LABEL[trip.type] : null
+  const typeLabel = trip.type ? t(`tripCard.typeLabels.${trip.type}`) : null
 
   return (
     <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
@@ -95,7 +86,7 @@ export default function TripCard({ trip, onJoin, isOwner, hasJoined, joiningId }
 
         {/* Date + heure */}
         <Text style={styles.heroMeta}>
-          {formatDate(trip.date_depart)} · {trip.heure_depart}
+          {localDate(trip.date_depart)} · {trip.heure_depart}
         </Text>
       </LinearGradient>
 
@@ -108,7 +99,7 @@ export default function TripCard({ trip, onJoin, isOwner, hasJoined, joiningId }
             <Text style={styles.avatarText}>{seedInitial(trip.organisateur_id)}</Text>
           </View>
           <View style={styles.lieuInfo}>
-            <Text style={styles.lieuLabel}>Point de départ</Text>
+            <Text style={styles.lieuLabel}>{t('tripCard.pickupLabel')}</Text>
             <Text style={styles.lieuValue} numberOfLines={1}>{trip.lieu_depart}</Text>
           </View>
         </View>
@@ -138,21 +129,21 @@ export default function TripCard({ trip, onJoin, isOwner, hasJoined, joiningId }
               isFull && styles.seatsLabelFull,
               isUrgent && styles.seatsLabelUrgent,
             ]}>
-              {isFull ? 'Complet' : `${placesLeft} place${placesLeft > 1 ? 's' : ''} libre${placesLeft > 1 ? 's' : ''}`}
+              {isFull ? t('tripCard.seatsFull') : t('tripCard.seats', { count: placesLeft })}
             </Text>
           </View>
 
           {/* Prix */}
           <View style={styles.priceCol}>
-            <Text style={styles.price}>{trip.prix_par_personne} $</Text>
-            <Text style={styles.priceLabel}>/ pers.</Text>
+            <Text style={styles.price}>{t('tripCard.priceAmount', { price: trip.prix_par_personne })}</Text>
+            <Text style={styles.priceLabel}>{t('tripCard.priceLabel')}</Text>
           </View>
         </View>
 
         {/* CTA pleine largeur */}
         {isOwner ? (
           <View style={styles.ownerStrip}>
-            <Text style={styles.ownerStripText}>✦ Ton covoiturage</Text>
+            <Text style={styles.ownerStripText}>{t('tripCard.ownerLabel')}</Text>
           </View>
         ) : hasJoined ? (
           <TouchableOpacity
@@ -160,7 +151,7 @@ export default function TripCard({ trip, onJoin, isOwner, hasJoined, joiningId }
             onPress={onJoin}
             activeOpacity={0.75}
           >
-            <Text style={styles.joinedStripText}>✓ Inscrit  ·  Se désinscrire</Text>
+            <Text style={styles.joinedStripText}>{t('tripCard.joinedLabel')}</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
@@ -172,7 +163,7 @@ export default function TripCard({ trip, onJoin, isOwner, hasJoined, joiningId }
             activeOpacity={1}
           >
             <Text style={[styles.joinBtnText, (isFull || isJoining) && styles.joinBtnTextDisabled]}>
-              {isFull ? 'Complet' : isJoining ? '…' : "J'embarque →"}
+              {isFull ? t('tripCard.ctaFull') : isJoining ? t('tripCard.ctaLoading') : t('tripCard.ctaJoin')}
             </Text>
           </TouchableOpacity>
         )}

@@ -10,6 +10,7 @@ import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { useAuth } from '../../lib/authContext'
 import { CAMPUS_OPTIONS } from '../../lib/supabase'
 import { registerForPushNotifications } from '../../hooks/useNotifications'
+import { t } from '../../lib/i18n'
 import Constants from 'expo-constants'
 
 const IS_EXPO_GO = Constants.appOwnership === 'expo'
@@ -45,19 +46,19 @@ export default function ProfilScreen({ active = true }: Props) {
     setPushEnabled(token !== null)
     if (!token) {
       Alert.alert(
-        'Notifications bloquées',
-        'Active les notifications dans les réglages de ton téléphone pour Junto.',
+        t('profil.notificationsBlockedTitle'),
+        t('profil.notificationsBlockedBody'),
       )
     }
   }
 
   const handleSignOut = () => {
     Alert.alert(
-      'Se déconnecter',
-      'Tu vas être déconnecté de Junto.',
+      t('profil.signOutTitle'),
+      t('profil.signOutBody'),
       [
-        { text: 'Annuler', style: 'cancel' },
-        { text: 'Se déconnecter', style: 'destructive', onPress: signOut },
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('profil.signOut'), style: 'destructive', onPress: signOut },
       ]
     )
   }
@@ -68,22 +69,20 @@ export default function ProfilScreen({ active = true }: Props) {
       <Animated.View style={[styles.container, entrance.style]}>
         <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
         <View style={[styles.headerRow, { paddingTop: insets.top + Spacing.md }]}>
-          <Text style={styles.logo}>Mon Profil</Text>
+          <Text style={styles.logo}>{t('profil.header')}</Text>
         </View>
 
         <View style={styles.guestContainer}>
           <Text style={styles.guestIcon}>👤</Text>
-          <Text style={styles.guestTitle}>Rejoins Junto</Text>
-          <Text style={styles.guestText}>
-            Connecte-toi avec ton email universitaire pour accéder au covoiturage étudiant.
-          </Text>
+          <Text style={styles.guestTitle}>{t('profil.guestTitle')}</Text>
+          <Text style={styles.guestText}>{t('profil.guestText')}</Text>
 
           <TouchableOpacity
             style={styles.btnPrimary}
             onPress={() => router.push('/auth/signup' as any)}
             activeOpacity={0.85}
           >
-            <Text style={styles.btnPrimaryText}>Créer un compte</Text>
+            <Text style={styles.btnPrimaryText}>{t('common.createAccount')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -91,12 +90,10 @@ export default function ProfilScreen({ active = true }: Props) {
             onPress={() => router.push('/auth/login' as any)}
             activeOpacity={0.85}
           >
-            <Text style={styles.btnSecondaryText}>Se connecter</Text>
+            <Text style={styles.btnSecondaryText}>{t('common.signIn')}</Text>
           </TouchableOpacity>
 
-          <Text style={styles.guestNote}>
-            Réservé aux étudiants des universités montréalaises (UdeM, McGill, Concordia, UQAM…)
-          </Text>
+          <Text style={styles.guestNote}>{t('profil.guestNote')}</Text>
         </View>
       </Animated.View>
     )
@@ -109,7 +106,7 @@ export default function ProfilScreen({ active = true }: Props) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
         <View style={[styles.headerRow, { paddingTop: insets.top + Spacing.md }]}>
-          <Text style={styles.logo}>Mon Profil</Text>
+          <Text style={styles.logo}>{t('profil.header')}</Text>
         </View>
 
         {/* Avatar + nom */}
@@ -123,31 +120,31 @@ export default function ProfilScreen({ active = true }: Props) {
           <Text style={styles.emailText}>{user?.email}</Text>
           <View style={styles.badgeActive}>
             <View style={styles.badgeDot} />
-            <Text style={styles.badgeText}>Étudiant vérifié</Text>
+            <Text style={styles.badgeText}>{t('profil.verified')}</Text>
           </View>
         </View>
 
         {/* Infos */}
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Campus</Text>
+            <Text style={styles.infoLabel}>{t('profil.campus')}</Text>
             <Text style={styles.infoValue}>{campusLabel ?? '—'}</Text>
           </View>
           {!IS_EXPO_GO && (
             <>
               <View style={styles.divider} />
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Notifications push</Text>
+                <Text style={styles.infoLabel}>{t('profil.notifications')}</Text>
                 {pushEnabled === null ? (
                   <ActivityIndicator size="small" color={Colors.inkMuted} />
                 ) : pushEnabled ? (
                   <View style={styles.pushOn}>
                     <View style={styles.pushDot} />
-                    <Text style={styles.pushOnText}>Activées</Text>
+                    <Text style={styles.pushOnText}>{t('profil.notificationsOn')}</Text>
                   </View>
                 ) : (
                   <TouchableOpacity onPress={handleEnablePush} activeOpacity={0.75}>
-                    <Text style={styles.pushOffText}>Activer →</Text>
+                    <Text style={styles.pushOffText}>{t('profil.notificationsEnable')}</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -161,7 +158,7 @@ export default function ProfilScreen({ active = true }: Props) {
           onPress={handleSignOut}
           activeOpacity={0.8}
         >
-          <Text style={styles.signOutText}>Se déconnecter</Text>
+          <Text style={styles.signOutText}>{t('profil.signOut')}</Text>
         </TouchableOpacity>
 
         <View style={{ height: Spacing.xxl }} />

@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { useAuth } from '../../lib/authContext'
 import Wordmark from '../../components/Wordmark'
+import { t } from '../../lib/i18n'
 
 export default function LoginScreen() {
   const router = useRouter()
@@ -22,7 +23,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      setError('Remplis tous les champs.')
+      setError(t('auth.login.errorFields'))
       return
     }
     setLoading(true)
@@ -30,7 +31,7 @@ export default function LoginScreen() {
     const { error } = await signIn(email.trim().toLowerCase(), password)
     setLoading(false)
     if (error) {
-      setError('Email ou mot de passe incorrect.')
+      setError(t('auth.login.errorCredentials'))
     } else {
       router.replace('/(tabs)')
     }
@@ -50,22 +51,22 @@ export default function LoginScreen() {
         {/* Logo */}
         <View style={styles.logoBlock}>
           <Wordmark size={44} />
-          <Text style={styles.logoSub}>Covoiturage étudiant · Montréal</Text>
+          <Text style={styles.logoSub}>{t('auth.tagline')}</Text>
         </View>
 
         {/* Card */}
         <View style={styles.card}>
-          <Text style={styles.title}>Connexion</Text>
-          <Text style={styles.subtitle}>Connecte-toi avec ton email universitaire</Text>
+          <Text style={styles.title}>{t('auth.login.title')}</Text>
+          <Text style={styles.subtitle}>{t('auth.login.subtitle')}</Text>
 
           {/* Email */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Email universitaire</Text>
+            <Text style={styles.label}>{t('auth.login.emailLabel')}</Text>
             <TextInput
               style={styles.input}
               value={email}
               onChangeText={setEmail}
-              placeholder="prenom.nom@umontreal.ca"
+              placeholder={t('auth.login.emailPlaceholder')}
               placeholderTextColor={Colors.inkMuted}
               keyboardType="email-address"
               autoCapitalize="none"
@@ -75,7 +76,7 @@ export default function LoginScreen() {
 
           {/* Password */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Mot de passe</Text>
+            <Text style={styles.label}>{t('auth.login.passwordLabel')}</Text>
             <TextInput
               style={styles.input}
               value={password}
@@ -102,16 +103,16 @@ export default function LoginScreen() {
           >
             {loading
               ? <ActivityIndicator color={Colors.cream} />
-              : <Text style={styles.btnText}>Se connecter</Text>
+              : <Text style={styles.btnText}>{t('auth.login.submit')}</Text>
             }
           </TouchableOpacity>
         </View>
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Pas encore de compte ? </Text>
+          <Text style={styles.footerText}>{t('auth.login.footerText')}</Text>
           <TouchableOpacity onPress={() => router.replace('/auth/signup' as any)}>
-            <Text style={styles.footerLink}>Créer un compte</Text>
+            <Text style={styles.footerLink}>{t('auth.login.footerLink')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

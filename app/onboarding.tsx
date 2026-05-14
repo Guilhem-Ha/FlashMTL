@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Colors, Spacing, BorderRadius } from '../constants/theme'
 import Wordmark from '../components/Wordmark'
+import { t } from '../lib/i18n'
 
 const { width } = Dimensions.get('window')
 
@@ -23,7 +24,7 @@ function Slide1() {
       {/* Wordmark */}
       <View style={slide.topBlock}>
         <Wordmark size={44} onDark />
-        <Text style={slide.tagline}>Covoiturage étudiant · Montréal</Text>
+        <Text style={slide.tagline}>{t('onboarding.tagline')}</Text>
       </View>
 
       {/* Route hero */}
@@ -56,8 +57,8 @@ function Slide1() {
               <Text style={slide.miniAvatarText}>A</Text>
             </View>
             <View>
-              <Text style={slide.cardBodyLabel}>Point de départ</Text>
-              <Text style={slide.cardBodyValue}>Métro Berri-UQAM</Text>
+              <Text style={slide.cardBodyLabel}>{t('onboarding.slide1.pickupLabel')}</Text>
+              <Text style={slide.cardBodyValue}>{t('onboarding.slide1.pickupValue')}</Text>
             </View>
           </View>
           <View style={slide.cardDivider} />
@@ -66,18 +67,16 @@ function Slide1() {
               {[true, true, false, false].map((taken, i) => (
                 <View key={i} style={[slide.seat, taken && slide.seatTaken]} />
               ))}
-              <Text style={slide.seatsText}>2 places libres</Text>
+              <Text style={slide.seatsText}>{t('onboarding.slide1.seatsText')}</Text>
             </View>
             <View style={slide.miniCta}>
-              <Text style={slide.miniCtaText}>J'embarque →</Text>
+              <Text style={slide.miniCtaText}>{t('onboarding.slide1.cta')}</Text>
             </View>
           </View>
         </View>
       </View>
 
-      <Text style={slide.sub}>
-        Propose ou rejoins un covoiturage en quelques secondes.
-      </Text>
+      <Text style={slide.sub}>{t('onboarding.slide1.sub')}</Text>
     </View>
   )
 }
@@ -91,9 +90,9 @@ function Slide2() {
 
       <View style={slide.topBlock}>
         <Text style={slide.icon}>🎓</Text>
-        <Text style={[slide.wordmark, { color: Colors.ink }]}>Réseau de confiance</Text>
+        <Text style={[slide.wordmark, { color: Colors.ink }]}>{t('onboarding.slide2.title')}</Text>
         <Text style={[slide.tagline, { color: Colors.inkMuted }]}>
-          Exclusif aux étudiants des universités montréalaises
+          {t('onboarding.slide2.subtitle')}
         </Text>
       </View>
 
@@ -109,9 +108,9 @@ function Slide2() {
       {/* Trust points */}
       <View style={slide.trustList}>
         {[
-          { icon: '✉️', text: 'Vérification par email universitaire' },
-          { icon: '🔒', text: 'Profil étudiant vérifié pour chaque membre' },
-          { icon: '⭐', text: 'Système de réputation entre pairs' },
+          { icon: '✉️', text: t('onboarding.slide2.trust0') },
+          { icon: '🔒', text: t('onboarding.slide2.trust1') },
+          { icon: '⭐', text: t('onboarding.slide2.trust2') },
         ].map((item, i) => (
           <View key={i} style={slide.trustRow}>
             <Text style={slide.trustIcon}>{item.icon}</Text>
@@ -131,18 +130,18 @@ function Slide3() {
 
       <View style={slide.topBlock}>
         <Text style={slide.icon}>🚗</Text>
-        <Text style={[slide.wordmark, { color: Colors.ink }]}>Partage les frais</Text>
+        <Text style={[slide.wordmark, { color: Colors.ink }]}>{t('onboarding.slide3.title')}</Text>
         <Text style={[slide.tagline, { color: 'rgba(26,22,18,0.65)' }]}>
-          Fixe ton prix, coordonne le départ, Junto s'occupe du reste.
+          {t('onboarding.slide3.subtitle')}
         </Text>
       </View>
 
       {/* Stats visuels */}
       <View style={slide.statsRow}>
         {[
-          { value: '0 $', label: 'commission' },
-          { value: '< 1 min', label: 'pour proposer' },
-          { value: '∞', label: 'destinations' },
+          { value: t('onboarding.slide3.stat0Value'), label: t('onboarding.slide3.stat0Label') },
+          { value: t('onboarding.slide3.stat1Value'), label: t('onboarding.slide3.stat1Label') },
+          { value: t('onboarding.slide3.stat2Value'), label: t('onboarding.slide3.stat2Label') },
         ].map((s, i) => (
           <View key={i} style={slide.statItem}>
             <Text style={slide.statValue}>{s.value}</Text>
@@ -153,11 +152,11 @@ function Slide3() {
 
       {/* Routes populaires */}
       <View style={slide.routesList}>
-        <Text style={[slide.routesTitle, { color: 'rgba(26,22,18,0.55)' }]}>TRAJETS POPULAIRES</Text>
+        <Text style={[slide.routesTitle, { color: 'rgba(26,22,18,0.55)' }]}>{t('onboarding.slide3.routesTitle')}</Text>
         {[
-          'Montréal → Québec City',
-          'Montréal → Mont-Tremblant',
-          'Montréal → Ottawa',
+          t('onboarding.slide3.route0'),
+          t('onboarding.slide3.route1'),
+          t('onboarding.slide3.route2'),
         ].map((r, i) => (
           <View key={i} style={slide.routeItem}>
             <Text style={slide.routeItemText}>{r}</Text>
@@ -222,7 +221,7 @@ export default function OnboardingScreen() {
           onPress={finish}
           activeOpacity={0.6}
         >
-          <Text style={[styles.skipText, { color: mutedColor }]}>Passer</Text>
+          <Text style={[styles.skipText, { color: mutedColor }]}>{t('onboarding.skip')}</Text>
         </TouchableOpacity>
       )}
 
@@ -270,7 +269,7 @@ export default function OnboardingScreen() {
             activeOpacity={0.9}
           >
             <Text style={[styles.ctaText, { color: bg }]}>
-              {isLast ? "C'est parti !" : 'Suivant'}
+              {isLast ? t('onboarding.start') : t('onboarding.next')}
             </Text>
           </TouchableOpacity>
         </Animated.View>

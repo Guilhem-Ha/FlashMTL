@@ -25,6 +25,7 @@ import { MOCK_TRIPS } from '../../mockData'
 import { useAuth } from '../../lib/authContext'
 import TripCard from '../../components/TripCard'
 import Wordmark from '../../components/Wordmark'
+import { t } from '../../lib/i18n'
 import type { Trip } from '../../types'
 
 const USE_MOCK = SUPABASE_URL.includes('TON_PROJECT_ID')
@@ -83,11 +84,11 @@ export default function TransportScreen({ active = true }: Props) {
   const handleJoin = async (trip: Trip) => {
     if (!user) {
       Alert.alert(
-        'Connexion requise',
-        "Connecte-toi pour rejoindre un trip.",
+        t('transport.alertLoginTitle'),
+        t('transport.alertLoginBody'),
         [
-          { text: 'Annuler', style: 'cancel' },
-          { text: 'Se connecter', onPress: () => router.push('/auth/login' as any) },
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('common.signIn'), onPress: () => router.push('/auth/login' as any) },
         ]
       )
       return
@@ -97,12 +98,12 @@ export default function TransportScreen({ active = true }: Props) {
 
     if (alreadyJoined) {
       Alert.alert(
-        'Quitter ce trip ?',
-        `Tu vas libérer ta place pour ${trip.destination}.`,
+        t('transport.alertLeaveTitle'),
+        t('transport.alertLeaveBody', { destination: trip.destination }),
         [
-          { text: 'Annuler', style: 'cancel' },
+          { text: t('common.cancel'), style: 'cancel' },
           {
-            text: 'Quitter',
+            text: t('transport.alertLeaveConfirm'),
             style: 'destructive',
             onPress: async () => {
               setJoiningId(trip.id)
@@ -110,14 +111,14 @@ export default function TransportScreen({ active = true }: Props) {
                 await leaveTrip(trip.id, user.id)
                 setMyTripIds(prev => prev.filter(id => id !== trip.id))
                 setTrips(prev =>
-                  prev.map(t =>
-                    t.id === trip.id
-                      ? { ...t, places_restantes: t.places_restantes + 1 }
-                      : t
+                  prev.map(tr =>
+                    tr.id === trip.id
+                      ? { ...tr, places_restantes: tr.places_restantes + 1 }
+                      : tr
                   )
                 )
               } catch {
-                Alert.alert('Erreur', 'Impossible de quitter ce trip.')
+                Alert.alert(t('common.error'), t('transport.alertLeaveError'))
               } finally {
                 setJoiningId(null)
               }
@@ -140,16 +141,16 @@ export default function TransportScreen({ active = true }: Props) {
       }
       setMyTripIds(prev => [...prev, trip.id])
       setTrips(prev =>
-        prev.map(t =>
-          t.id === trip.id
-            ? { ...t, places_restantes: t.places_restantes - 1 }
-            : t
+        prev.map(tr =>
+          tr.id === trip.id
+            ? { ...tr, places_restantes: tr.places_restantes - 1 }
+            : tr
         )
       )
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-      Alert.alert('🎉 Tu embarques !', `Place réservée pour ${trip.destination}.`)
+      Alert.alert(t('transport.alertJoinSuccessTitle'), t('transport.alertJoinSuccessBody', { destination: trip.destination }))
     } catch {
-      Alert.alert('Erreur', 'Impossible de rejoindre ce trip.')
+      Alert.alert(t('common.error'), t('transport.alertJoinError'))
     } finally {
       setJoiningId(null)
     }
@@ -161,10 +162,11 @@ export default function TransportScreen({ active = true }: Props) {
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
-        <View>
+        <View style={styles.wordmarkRow}>
           <Wordmark size={26} />
-          <Text style={styles.subtitle}>Covoiturage étudiant • Montréal</Text>
+          <Text style={styles.wordmarkEmoji}>🚗</Text>
         </View>
+        <Text style={styles.subtitle}>{t('transport.tagline')}</Text>
       </View>
 
       {/* List */}
@@ -175,9 +177,9 @@ export default function TransportScreen({ active = true }: Props) {
       ) : trips.length === 0 ? (
         <View style={styles.centered}>
           <Text style={styles.emptyIcon}>🗺️</Text>
-          <Text style={styles.emptyTitle}>Aucun trip pour l'instant</Text>
+          <Text style={styles.emptyTitle}>{t('transport.emptyTitle')}</Text>
           <Text style={styles.emptyText}>
-            Sois le premier à organiser un covoiturage !
+            {t('transport.emptyText')}
           </Text>
         </View>
       ) : (
@@ -212,7 +214,7 @@ export default function TransportScreen({ active = true }: Props) {
         onPress={() => router.push('/transport/create' as any)}
         activeOpacity={0.88}
       >
-        <Text style={styles.fabText}>+  Proposer un trip</Text>
+        <Text style={styles.fabText}>{t('common.proposeTrip')}</Text>
       </TouchableOpacity>
     </Animated.View>
   )
@@ -229,6 +231,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
+  },
+  wordmarkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  wordmarkEmoji: {
+    fontSize: 18,
+    lineHeight: 26,
   },
   subtitle: {
     fontSize: 12,
