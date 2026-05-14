@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { AuthProvider, useAuth } from '../lib/authContext'
 import { useNotifications } from '../hooks/useNotifications'
 import { ONBOARDING_KEY } from './onboarding'
+// Note: offre screens kept for future use
 
 export { ErrorBoundary } from 'expo-router'
 

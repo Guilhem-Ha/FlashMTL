@@ -1,29 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import {
-  View, Text, StyleSheet, StatusBar, Platform,
+  View, Text, StyleSheet, StatusBar,
   TouchableOpacity, Alert, ScrollView, ActivityIndicator, Animated,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useActiveEntrance } from '../../hooks/useScreenEntrance'
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
-import { SUPABASE_URL } from '../../constants/theme'
 import { useAuth } from '../../lib/authContext'
 import { CAMPUS_OPTIONS } from '../../lib/supabase'
-import { fetchMyTrips, fetchMyOrganizedTrips } from '../../lib/api'
 import { registerForPushNotifications } from '../../hooks/useNotifications'
 import Constants from 'expo-constants'
 
 const IS_EXPO_GO = Constants.appOwnership === 'expo'
-import { MOCK_TRIPS } from '../../mockData'
-import type { Trip } from '../../types'
-
-const USE_MOCK = SUPABASE_URL.includes('TON_PROJECT_ID')
-
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' })
-}
 
 interface Props { active?: boolean }
 
@@ -32,9 +21,6 @@ export default function ProfilScreen({ active = true }: Props) {
   const { user, session, signOut } = useAuth()
   const entrance = useActiveEntrance(active)
 
-  const [myTrips, setMyTrips] = useState<Trip[]>([])
-  const [myOrganizedTrips, setMyOrganizedTrips] = useState<Trip[]>([])
-  const [tripsLoading, setTripsLoading] = useState(false)
   const [pushEnabled, setPushEnabled] = useState<boolean | null>(null)
 
   const insets = useSafeAreaInsets()
@@ -43,23 +29,6 @@ export default function ProfilScreen({ active = true }: Props) {
 
   useEffect(() => {
     if (!user) return
-
-    // Load trips
-    setTripsLoading(true)
-    if (USE_MOCK) {
-      setMyTrips(MOCK_TRIPS.slice(0, 1))
-      setMyOrganizedTrips(MOCK_TRIPS.slice(1, 2))
-      setTripsLoading(false)
-    } else {
-      Promise.all([
-        fetchMyTrips(user.id),
-        fetchMyOrganizedTrips(user.id),
-      ]).then(([joined, organized]) => {
-        setMyTrips(joined)
-        setMyOrganizedTrips(organized)
-      }).finally(() => setTripsLoading(false))
-    }
-
     // Check push permission status (non disponible en Expo Go)
     if (!IS_EXPO_GO) {
       import('expo-notifications').then(async Notifications => {
@@ -77,7 +46,7 @@ export default function ProfilScreen({ active = true }: Props) {
     if (!token) {
       Alert.alert(
         'Notifications bloquées',
-        'Active les notifications dans les réglages de ton téléphone pour FlashMTL.',
+        'Active les notifications dans les réglages de ton téléphone pour Junto.',
       )
     }
   }
@@ -85,7 +54,7 @@ export default function ProfilScreen({ active = true }: Props) {
   const handleSignOut = () => {
     Alert.alert(
       'Se déconnecter',
-      'Tu vas être déconnecté de FlashMtl.',
+      'Tu vas être déconnecté de Junto.',
       [
         { text: 'Annuler', style: 'cancel' },
         { text: 'Se déconnecter', style: 'destructive', onPress: signOut },
@@ -104,9 +73,9 @@ export default function ProfilScreen({ active = true }: Props) {
 
         <View style={styles.guestContainer}>
           <Text style={styles.guestIcon}>👤</Text>
-          <Text style={styles.guestTitle}>Rejoins FlashMtl</Text>
+          <Text style={styles.guestTitle}>Rejoins Junto</Text>
           <Text style={styles.guestText}>
-            Connecte-toi avec ton email universitaire pour recevoir les offres flash en temps réel.
+            Connecte-toi avec ton email universitaire pour accéder au covoiturage étudiant.
           </Text>
 
           <TouchableOpacity
@@ -126,7 +95,7 @@ export default function ProfilScreen({ active = true }: Props) {
           </TouchableOpacity>
 
           <Text style={styles.guestNote}>
-            Réservé aux étudiants des universités montréalaises
+            Réservé aux étudiants des universités montréalaises (UdeM, McGill, Concordia, UQAM…)
           </Text>
         </View>
       </Animated.View>
@@ -185,66 +154,6 @@ export default function ProfilScreen({ active = true }: Props) {
             </>
           )}
         </View>
-
-        {/* Mes trips */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Mes trips 🚗</Text>
-
-          {tripsLoading ? (
-            <ActivityIndicator color={Colors.accent} style={{ marginTop: Spacing.md }} />
-          ) : myTrips.length === 0 ? (
-            <View style={styles.emptyTrips}>
-              <Text style={styles.emptyTripsText}>
-                Tu n'as pas encore rejoint de trip.
-              </Text>
-              <TouchableOpacity
-                onPress={() => router.push('/(tabs)/transport' as any)}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.emptyTripsLink}>Voir les trips disponibles →</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            myTrips.map(trip => (
-              <View key={trip.id} style={styles.tripRow}>
-                <View style={styles.tripLeft}>
-                  <Text style={styles.tripDestination}>{trip.destination}</Text>
-                  <Text style={styles.tripMeta}>
-                    {formatDate(trip.date_depart)}  ·  {trip.heure_depart}  ·  {trip.lieu_depart}
-                  </Text>
-                </View>
-                <View style={styles.tripPriceBadge}>
-                  <Text style={styles.tripPrice}>{trip.prix_par_personne} $</Text>
-                </View>
-              </View>
-            ))
-          )}
-        </View>
-
-        {/* Trips organisés */}
-        {myOrganizedTrips.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Mes trips organisés 📋</Text>
-            {myOrganizedTrips.map(trip => (
-              <View key={trip.id} style={[styles.tripRow, styles.tripRowOrganized]}>
-                <View style={styles.tripLeft}>
-                  <View style={styles.tripOrganizerRow}>
-                    <Text style={styles.tripDestination}>{trip.destination}</Text>
-                    <View style={styles.organizerBadge}>
-                      <Text style={styles.organizerBadgeText}>Organisateur</Text>
-                    </View>
-                  </View>
-                  <Text style={styles.tripMeta}>
-                    {formatDate(trip.date_depart)}  ·  {trip.heure_depart}  ·  {trip.places_restantes}/{trip.places_total} places
-                  </Text>
-                </View>
-                <View style={styles.tripPriceBadge}>
-                  <Text style={styles.tripPrice}>{trip.prix_par_personne} $</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
 
         {/* Déconnexion */}
         <TouchableOpacity

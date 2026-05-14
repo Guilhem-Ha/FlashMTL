@@ -39,8 +39,13 @@ export default function TripCard({ trip, onJoin, isOwner, hasJoined }: Props) {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.destinationRow}>
-          <Text style={styles.destinationIcon}>📍</Text>
-          <Text style={styles.destination}>{trip.destination}</Text>
+          <Text style={styles.destinationIcon}>→</Text>
+          <View style={styles.destinationBlock}>
+            {trip.ville_depart ? (
+              <Text style={styles.villeDepart}>{trip.ville_depart}</Text>
+            ) : null}
+            <Text style={styles.destination}>{trip.destination}</Text>
+          </View>
         </View>
         <View style={[styles.placesBadge, isFull && styles.placesBadgeFull, isUrgent && styles.placesBadgeUrgent]}>
           <Text style={[styles.placesText, isFull && styles.placesTextFull, isUrgent && styles.placesTextUrgent]}>
@@ -135,18 +140,30 @@ const styles = StyleSheet.create({
   destinationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     flex: 1,
   },
   destinationIcon: {
-    fontSize: 16,
+    fontSize: 18,
+    color: Colors.accent,
+    fontWeight: '700',
+  },
+  destinationBlock: {
+    flex: 1,
+    gap: 0,
+  },
+  villeDepart: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: Colors.inkMuted,
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
   },
   destination: {
     fontSize: 20,
     fontWeight: '800',
     color: Colors.ink,
     letterSpacing: 0.2,
-    flex: 1,
   },
   placesBadge: {
     backgroundColor: '#EBF5E8',

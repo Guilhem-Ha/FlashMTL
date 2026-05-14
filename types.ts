@@ -27,8 +27,11 @@ export interface Offre {
   est_active: boolean
 }
 
+export type TripType = 'aller_simple' | 'aller_retour' | 'recurrent'
+
 export interface Trip {
   id: string
+  ville_depart: string
   destination: string
   date_depart: string
   heure_depart: string
@@ -38,6 +41,7 @@ export interface Trip {
   prix_par_personne: number
   organisateur_id: string
   description: string
+  type?: TripType
   created_at: string
 }
 

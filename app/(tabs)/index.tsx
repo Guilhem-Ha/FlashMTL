@@ -1,436 +1,477 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import {
-  View, Text, StyleSheet, ActivityIndicator,
-  RefreshControl, StatusBar, TouchableOpacity,
-  ScrollView, TextInput, Platform, Animated,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet,
+  StatusBar, Animated, ActivityIndicator, RefreshControl,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import * as Haptics from 'expo-haptics'
 import { useActiveEntrance } from '../../hooks/useScreenEntrance'
 import { tabScrollCallbacks } from '../../lib/tabScrollRefs'
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
-import { useOffres } from '../../hooks/useOffres'
-import OffreCard from '../../components/OffreCard'
-import type { Offre, OffreCategorie } from '../../types'
+import { SUPABASE_URL } from '../../constants/theme'
+import { fetchMyTrips, fetchMyOrganizedTrips } from '../../lib/api'
+import { MOCK_TRIPS } from '../../mockData'
+import { useAuth } from '../../lib/authContext'
+import type { Trip } from '../../types'
 
-const CATEGORIES: { key: OffreCategorie | 'all'; label: string; icon: string }[] = [
-  { key: 'all',      label: 'Tout',      icon: '⚡' },
-  { key: 'resto',    label: 'Restos',    icon: '🍽️' },
-  { key: 'bar',      label: 'Bars',      icon: '🍻' },
-  { key: 'show',     label: 'Shows',     icon: '🎭' },
-  { key: 'activite', label: 'Activités', icon: '🎯' },
-]
+const USE_MOCK = SUPABASE_URL.includes('TON_PROJECT_ID')
 
-const HEADER_COLLAPSE_START = 10
-const HEADER_COLLAPSE_END = 80
-const BACK_TO_TOP_THRESHOLD = 350
+const TYPE_LABELS: Record<string, string> = {
+  aller_simple: 'Aller simple',
+  aller_retour: 'Aller-retour',
+  recurrent: 'Récurrent',
+}
+
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr)
+  return d.toLocaleDateString('fr-CA', { weekday: 'short', day: 'numeric', month: 'short' })
+}
 
 interface Props { active?: boolean }
 
-export default function FeedScreen({ active = true }: Props) {
+export default function MesTripsScreen({ active = true }: Props) {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const entrance = useActiveEntrance(active)
-  const { offres, loading, error, refresh } = useOffres()
-  const [activeFilter, setActiveFilter] = useState<OffreCategorie | 'all'>('all')
-  const [search, setSearch] = useState('')
-  const [searchFocused, setSearchFocused] = useState(false)
-  const [showBackToTop, setShowBackToTop] = useState(false)
+  const { user, session } = useAuth()
+  const scrollRef = useRef<ScrollView>(null)
 
-  // Refs
-  const flatRef = useRef<Animated.FlatList<Offre>>(null)
+  const [joinedTrips, setJoinedTrips] = useState<Trip[]>([])
+  const [organizedTrips, setOrganizedTrips] = useState<Trip[]>([])
+  const [loading, setLoading] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
 
-  // Register scroll-to-top callback for tab press
+  // Register scroll-to-top callback (tab 1)
   useEffect(() => {
-    tabScrollCallbacks[0] = () =>
-      (flatRef.current as any)?.scrollToOffset({ offset: 0, animated: true })
-    return () => { tabScrollCallbacks[0] = null }
+    tabScrollCallbacks[1] = () =>
+      scrollRef.current?.scrollTo({ y: 0, animated: true })
+    return () => { tabScrollCallbacks[1] = null }
   }, [])
 
-  // Scroll animation
-  const scrollY = useRef(new Animated.Value(0)).current
-
-  const titleOpacity = scrollY.interpolate({
-    inputRange: [HEADER_COLLAPSE_START, HEADER_COLLAPSE_END],
-    outputRange: [1, 0],
-    extrapolate: 'clamp',
-  })
-  const titleTranslateY = scrollY.interpolate({
-    inputRange: [HEADER_COLLAPSE_START, HEADER_COLLAPSE_END],
-    outputRange: [0, -16],
-    extrapolate: 'clamp',
-  })
-  const titleHeight = scrollY.interpolate({
-    inputRange: [HEADER_COLLAPSE_START, HEADER_COLLAPSE_END],
-    outputRange: [52, 0],
-    extrapolate: 'clamp',
-  })
-
-  const backToTopOpacity = useRef(new Animated.Value(0)).current
-
-  const handleScroll = Animated.event(
-    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-    {
-      useNativeDriver: false,
-      listener: (e: any) => {
-        const y = e.nativeEvent.contentOffset.y
-        const shouldShow = y > BACK_TO_TOP_THRESHOLD
-        if (shouldShow !== showBackToTop) {
-          setShowBackToTop(shouldShow)
-          Animated.timing(backToTopOpacity, {
-            toValue: shouldShow ? 1 : 0,
-            duration: 200,
-            useNativeDriver: true,
-          }).start()
-        }
-      },
+  const load = useCallback(async () => {
+    if (!user) { setLoading(false); setRefreshing(false); return }
+    try {
+      if (USE_MOCK) {
+        setOrganizedTrips(MOCK_TRIPS.slice(1, 2))
+        setJoinedTrips(MOCK_TRIPS.slice(0, 1))
+      } else {
+        const [joined, organized] = await Promise.all([
+          fetchMyTrips(user.id),
+          fetchMyOrganizedTrips(user.id),
+        ])
+        setJoinedTrips(joined)
+        setOrganizedTrips(organized)
+      }
+    } catch {
+      // fail silently
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
     }
-  )
+  }, [user])
 
-  const scrollToTop = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-    ;(flatRef.current as any)?.scrollToOffset({ offset: 0, animated: true })
+  useEffect(() => {
+    if (active) {
+      setLoading(true)
+      load()
+    }
+  }, [active, load])
+
+  const handleRefresh = () => {
+    setRefreshing(true)
+    load()
   }
 
-  const filtered = useMemo(() => {
-    let result = offres
-    if (activeFilter !== 'all') result = result.filter(o => o.categorie === activeFilter)
-    if (search.trim()) {
-      const q = search.toLowerCase()
-      result = result.filter(o =>
-        o.commerce.nom.toLowerCase().includes(q) ||
-        o.titre.toLowerCase().includes(q) ||
-        o.commerce.quartier.toLowerCase().includes(q)
-      )
-    }
-    return result
-  }, [offres, activeFilter, search])
-
-  const handleFilterPress = (key: OffreCategorie | 'all') => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-    setActiveFilter(key)
-  }
-
-  const Header = () => (
-    <View>
-      {/* Title row — s'efface au scroll */}
-      <Animated.View
-        style={[
-          styles.header,
-          {
-            paddingTop: insets.top + Spacing.md,
-            opacity: titleOpacity,
-            transform: [{ translateY: titleTranslateY }],
-            height: Animated.add(titleHeight, insets.top + Spacing.md + Spacing.md),
-            overflow: 'hidden',
-          },
-        ]}
-      >
-        <View>
-          <Text style={styles.logo}>FlashMtl ⚡</Text>
-          <Text style={styles.subtitle}>
-            {filtered.length} offre{filtered.length !== 1 ? 's' : ''} disponible{filtered.length !== 1 ? 's' : ''}
-          </Text>
+  // ── Not logged in ─────────────────────────────────────────────
+  if (!session) {
+    return (
+      <Animated.View style={[styles.root, entrance.style]}>
+        <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+        <View style={[styles.headerRow, { paddingTop: insets.top + Spacing.md }]}>
+          <Text style={styles.headerTitle}>Mes trajets</Text>
         </View>
-        <View style={styles.liveBadge}>
-          <View style={styles.liveDot} />
-          <Text style={styles.liveText}>En direct</Text>
+        <View style={styles.guestContainer}>
+          <Text style={styles.guestIcon}>🎒</Text>
+          <Text style={styles.guestTitle}>Tes trajets ici</Text>
+          <Text style={styles.guestText}>
+            Connecte-toi pour voir les covoiturages que tu as organisés ou rejoints.
+          </Text>
+          <TouchableOpacity
+            style={styles.btnPrimary}
+            onPress={() => router.push('/auth/signup' as any)}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.btnPrimaryText}>Créer un compte étudiant</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.btnSecondary}
+            onPress={() => router.push('/auth/login' as any)}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.btnSecondaryText}>Se connecter</Text>
+          </TouchableOpacity>
+          <Text style={styles.guestNote}>Réservé aux étudiants des universités montréalaises</Text>
         </View>
       </Animated.View>
+    )
+  }
 
-      {/* Search bar */}
-      <View style={[styles.searchRow, searchFocused && styles.searchRowFocused]}>
-        <Text style={styles.searchIcon}>🔍</Text>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Rechercher un resto, quartier…"
-          placeholderTextColor={Colors.inkMuted}
-          value={search}
-          onChangeText={setSearch}
-          onFocus={() => setSearchFocused(true)}
-          onBlur={() => setSearchFocused(false)}
-          returnKeyType="search"
-          autoCorrect={false}
-        />
-        {search.length > 0 && (
-          <TouchableOpacity
-            onPress={() => { setSearch(''); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light) }}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Text style={styles.searchClear}>✕</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+  // ── Loading ───────────────────────────────────────────────────
+  if (loading && !refreshing) {
+    return (
+      <Animated.View style={[styles.root, entrance.style]}>
+        <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+        <View style={[styles.headerRow, { paddingTop: insets.top + Spacing.md }]}>
+          <Text style={styles.headerTitle}>Mes trajets</Text>
+        </View>
+        <View style={styles.centered}>
+          <ActivityIndicator color={Colors.accent} size="large" />
+        </View>
+      </Animated.View>
+    )
+  }
 
-      {/* Filter chips */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filtersRow}
-      >
-        {CATEGORIES.map(cat => {
-          const isActive = activeFilter === cat.key
-          return (
-            <TouchableOpacity
-              key={cat.key}
-              style={[styles.chip, isActive && styles.chipActive]}
-              onPress={() => handleFilterPress(cat.key)}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.chipIcon}>{cat.icon}</Text>
-              <Text style={[styles.chipLabel, isActive && styles.chipLabelActive]}>
-                {cat.label}
-              </Text>
-            </TouchableOpacity>
-          )
-        })}
-      </ScrollView>
-    </View>
-  )
-
-  if (loading) return (
-    <View style={styles.centered}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
-      <ActivityIndicator color={Colors.accent} size="large" />
-    </View>
-  )
-
-  if (error) return (
-    <View style={styles.centered}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
-      <Text style={styles.errorText}>{error}</Text>
-    </View>
-  )
+  const hasAny = organizedTrips.length > 0 || joinedTrips.length > 0
 
   return (
-    <Animated.View style={[styles.container, entrance.style]}>
+    <Animated.View style={[styles.root, entrance.style]} pointerEvents="box-none">
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
 
-      <Animated.FlatList
-        ref={flatRef}
-        data={filtered}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <OffreCard offre={item} onPress={() => router.push(`/offre/${item.id}`)} />
-        )}
-        ListHeaderComponent={<Header />}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>
-              {search ? '🔍' : CATEGORIES.find(c => c.key === activeFilter)?.icon ?? '⚡'}
-            </Text>
-            <Text style={styles.emptyTitle}>
-              {search
-                ? `Aucun résultat pour "${search}"`
-                : activeFilter === 'all'
-                  ? "Aucune offre pour l'instant"
-                  : `Aucune offre "${CATEGORIES.find(c => c.key === activeFilter)?.label}" ce soir`}
-            </Text>
-            <Text style={styles.emptySubtitle}>
-              {search ? 'Essaie un autre mot-clé.' : 'Reviens ce soir — les offres arrivent en fin de journée.'}
-            </Text>
-          </View>
-        }
+      <ScrollView
+        ref={scrollRef}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top + Spacing.md, paddingBottom: 88 + insets.bottom },
+        ]}
         refreshControl={
           <RefreshControl
-            refreshing={loading}
-            onRefresh={refresh}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
             tintColor={Colors.accent}
           />
         }
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
-      />
-
-      {/* Bouton retour en haut */}
-      <Animated.View
-        style={[styles.backToTop, { opacity: backToTopOpacity, bottom: insets.bottom + 16 }]}
-        pointerEvents={showBackToTop ? 'auto' : 'none'}
       >
-        <TouchableOpacity
-          style={styles.backToTopBtn}
-          onPress={scrollToTop}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.backToTopText}>↑ Haut</Text>
-        </TouchableOpacity>
-      </Animated.View>
+        <View style={styles.headerRow}>
+          <Text style={styles.headerTitle}>Mes trajets</Text>
+        </View>
+
+        {/* Empty global */}
+        {!hasAny && (
+          <View style={styles.emptyGlobal}>
+            <Text style={styles.emptyGlobalIcon}>🗺️</Text>
+            <Text style={styles.emptyGlobalTitle}>Aucun trajet pour l'instant</Text>
+            <Text style={styles.emptyGlobalText}>
+              Rejoins un covoiturage dans l'onglet Trajets, ou propose le tien.
+            </Text>
+            <TouchableOpacity
+              style={styles.btnPrimary}
+              onPress={() => router.push('/transport/create' as any)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.btnPrimaryText}>Proposer un trip</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* ── Organisés ── */}
+        {organizedTrips.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>📋 Organisés par toi</Text>
+            {organizedTrips.map(trip => (
+              <TripRow key={trip.id} trip={trip} isOrganized />
+            ))}
+          </View>
+        )}
+
+        {/* ── Rejoints ── */}
+        {joinedTrips.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>🎒 Trips rejoints</Text>
+            {joinedTrips.map(trip => (
+              <TripRow key={trip.id} trip={trip} isOrganized={false} />
+            ))}
+          </View>
+        )}
+      </ScrollView>
+
+      {/* FAB */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => router.push('/transport/create' as any)}
+        activeOpacity={0.88}
+      >
+        <Text style={styles.fabText}>+  Proposer un trip</Text>
+      </TouchableOpacity>
     </Animated.View>
   )
 }
 
+function TripRow({ trip, isOrganized }: { trip: Trip; isOrganized: boolean }) {
+  const route = `${trip.ville_depart || 'Montréal'} → ${trip.destination}`
+  const typeLabel = trip.type ? TYPE_LABELS[trip.type] : null
+
+  return (
+    <View style={[styles.tripCard, isOrganized && styles.tripCardOrganized]}>
+      <View style={styles.tripTop}>
+        <Text style={styles.tripRoute} numberOfLines={1}>{route}</Text>
+        <View style={styles.tripBadges}>
+          {isOrganized && (
+            <View style={styles.orgBadge}>
+              <Text style={styles.orgBadgeText}>Organisateur</Text>
+            </View>
+          )}
+          {typeLabel && (
+            <View style={styles.typeBadge}>
+              <Text style={styles.typeBadgeText}>{typeLabel}</Text>
+            </View>
+          )}
+        </View>
+      </View>
+      <Text style={styles.tripMeta}>
+        {formatDate(trip.date_depart)} · {trip.heure_depart} · {trip.lieu_depart}
+      </Text>
+      <View style={styles.tripFooter}>
+        {isOrganized && (
+          <Text style={styles.tripPlaces}>
+            {trip.places_restantes}/{trip.places_total} places libres
+          </Text>
+        )}
+        <View style={styles.priceBadge}>
+          <Text style={styles.priceText}>{trip.prix_par_personne} $ / pers.</Text>
+        </View>
+      </View>
+    </View>
+  )
+}
+
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
     backgroundColor: Colors.background,
   },
-  list: {
-    paddingBottom: Spacing.xxl,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
+  scrollContent: {},
+  headerRow: {
     paddingHorizontal: Spacing.md,
     paddingBottom: Spacing.sm,
   },
-  logo: {
+  headerTitle: {
     fontSize: 28,
     fontWeight: '900',
     color: Colors.ink,
     letterSpacing: 0.3,
   },
-  subtitle: {
-    fontSize: 13,
-    color: Colors.inkMuted,
-    fontWeight: '300',
-    marginTop: 2,
-  },
-  liveBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: Colors.cream,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Colors.creamDark,
-  },
-  liveDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: Colors.danger,
-  },
-  liveText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: Colors.inkLight,
-  },
-  searchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.cream,
-    borderWidth: 1,
-    borderColor: Colors.creamDark,
-    borderRadius: BorderRadius.lg,
-    marginHorizontal: Spacing.md,
-    marginBottom: Spacing.sm,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Platform.OS === 'ios' ? 10 : 6,
-    gap: 6,
-  },
-  searchRowFocused: {
-    borderColor: Colors.accent,
-    backgroundColor: '#FAF5EC',
-  },
-  searchIcon: {
-    fontSize: 15,
-    opacity: 0.6,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    color: Colors.ink,
-    fontWeight: '400',
-    padding: 0,
-  },
-  searchClear: {
-    fontSize: 13,
-    color: Colors.inkMuted,
-    fontWeight: '500',
-    paddingHorizontal: 4,
-  },
-  filtersRow: {
-    paddingHorizontal: Spacing.md,
-    paddingBottom: Spacing.md,
-    gap: 8,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: Colors.cream,
-    borderWidth: 1,
-    borderColor: Colors.creamDark,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: BorderRadius.xl,
-  },
-  chipActive: {
-    backgroundColor: Colors.ink,
-    borderColor: Colors.ink,
-  },
-  chipIcon: {
-    fontSize: 13,
-  },
-  chipLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: Colors.inkLight,
-  },
-  chipLabelActive: {
-    color: Colors.cream,
-    fontWeight: '600',
-  },
   centered: {
     flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  // ── Guest ────────────────────────────────────────────────────
+  guestContainer: {
+    flex: 1,
     alignItems: 'center',
-    backgroundColor: Colors.background,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.xl,
   },
-  errorText: {
-    color: Colors.inkLight,
-    fontSize: 14,
-  },
-  empty: {
-    paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.xxl,
-    alignItems: 'center',
-  },
-  emptyIcon: {
-    fontSize: 40,
+  guestIcon: {
+    fontSize: 56,
     marginBottom: Spacing.md,
   },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+  guestTitle: {
+    fontSize: 22,
+    fontWeight: '800',
     color: Colors.ink,
     marginBottom: Spacing.sm,
-    textAlign: 'center',
   },
-  emptySubtitle: {
+  guestText: {
     fontSize: 14,
     color: Colors.inkMuted,
     textAlign: 'center',
     lineHeight: 22,
     fontWeight: '300',
+    marginBottom: Spacing.xl,
   },
-  backToTop: {
-    position: 'absolute',
-    alignSelf: 'center',
-  },
-  backToTopBtn: {
+  btnPrimary: {
     backgroundColor: Colors.ink,
-    paddingHorizontal: 18,
-    paddingVertical: 9,
-    borderRadius: 20,
-    shadowColor: Colors.ink,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 5,
+    borderRadius: BorderRadius.md,
+    paddingVertical: 15,
+    paddingHorizontal: Spacing.xl,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
   },
-  backToTopText: {
+  btnPrimaryText: {
     color: Colors.cream,
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '700',
     letterSpacing: 0.3,
+  },
+  btnSecondary: {
+    backgroundColor: Colors.cream,
+    borderRadius: BorderRadius.md,
+    paddingVertical: 15,
+    paddingHorizontal: Spacing.xl,
+    width: '100%',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.creamDark,
+  },
+  btnSecondaryText: {
+    color: Colors.ink,
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  },
+  guestNote: {
+    fontSize: 12,
+    color: Colors.inkMuted,
+    textAlign: 'center',
+    marginTop: Spacing.lg,
+    fontWeight: '300',
+  },
+
+  // ── Empty ─────────────────────────────────────────────────────
+  emptyGlobal: {
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.xxl,
+    gap: Spacing.sm,
+  },
+  emptyGlobalIcon: { fontSize: 48, marginBottom: Spacing.sm },
+  emptyGlobalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.ink,
+  },
+  emptyGlobalText: {
+    fontSize: 14,
+    color: Colors.inkMuted,
+    textAlign: 'center',
+    lineHeight: 22,
+    fontWeight: '300',
+    marginBottom: Spacing.md,
+  },
+
+  // ── Sections ──────────────────────────────────────────────────
+  section: {
+    marginHorizontal: Spacing.md,
+    marginTop: Spacing.lg,
+  },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: Colors.ink,
+    marginBottom: Spacing.sm,
+    letterSpacing: 0.2,
+  },
+
+  // ── Trip card ─────────────────────────────────────────────────
+  tripCard: {
+    backgroundColor: Colors.cream,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.creamDark,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+    gap: 5,
+  },
+  tripCardOrganized: {
+    borderColor: Colors.accent,
+    borderWidth: 1.5,
+  },
+  tripTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    justifyContent: 'space-between',
+  },
+  tripRoute: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.ink,
+    flex: 1,
+    letterSpacing: 0.2,
+  },
+  tripBadges: {
+    flexDirection: 'row',
+    gap: 4,
+    flexShrink: 0,
+  },
+  orgBadge: {
+    backgroundColor: Colors.accent,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+  },
+  orgBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: Colors.ink,
+    letterSpacing: 0.3,
+  },
+  typeBadge: {
+    backgroundColor: Colors.creamDark,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+  },
+  typeBadgeText: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: Colors.inkMuted,
+    letterSpacing: 0.2,
+  },
+  tripMeta: {
+    fontSize: 12,
+    color: Colors.inkMuted,
+    fontWeight: '300',
+  },
+  tripFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 2,
+  },
+  tripPlaces: {
+    fontSize: 12,
+    color: Colors.inkLight,
+    fontWeight: '500',
+  },
+  priceBadge: {
+    backgroundColor: Colors.ink,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.md,
+    marginLeft: 'auto',
+  },
+  priceText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.cream,
+  },
+
+  // ── FAB ───────────────────────────────────────────────────────
+  fab: {
+    position: 'absolute',
+    bottom: Spacing.lg,
+    left: Spacing.md,
+    right: Spacing.md,
+    backgroundColor: Colors.ink,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: Colors.ink,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  fabText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.cream,
+    letterSpacing: 0.4,
   },
 })

@@ -84,8 +84,8 @@ export default function SignupScreen() {
       >
         {/* Logo */}
         <View style={styles.logoBlock}>
-          <Text style={styles.logo}>FlashMtl</Text>
-          <Text style={styles.logoSub}>Réservé aux étudiants montréalais</Text>
+          <Text style={styles.logo}>Junto</Text>
+          <Text style={styles.logoSub}>Covoiturage étudiant · Montréal</Text>
         </View>
 
         {/* Card */}

@@ -57,10 +57,16 @@ export async function fetchTrips(): Promise<Trip[]> {
   return (data ?? []) as unknown as Trip[]
 }
 
-export async function createTrip(trip: Omit<Trip, 'id' | 'created_at' | 'places_restantes'>): Promise<Trip> {
+export async function createTrip(
+  trip: Omit<Trip, 'id' | 'created_at' | 'places_restantes'>,
+): Promise<Trip> {
   const { data, error } = await supabase
     .from('trips')
-    .insert({ ...trip, places_restantes: trip.places_total })
+    .insert({
+      ...trip,
+      places_restantes: trip.places_total,
+      ville_depart: trip.ville_depart ?? 'Montréal',
+    })
     .select()
     .single()
 

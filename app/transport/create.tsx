@@ -20,8 +20,15 @@ import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { SUPABASE_URL } from '../../constants/theme'
 import { createTrip } from '../../lib/api'
 import { useAuth } from '../../lib/authContext'
+import type { TripType } from '../../types'
 
 const USE_MOCK = SUPABASE_URL.includes('TON_PROJECT_ID')
+
+const TRIP_TYPES: { value: TripType; label: string }[] = [
+  { value: 'aller_simple', label: 'Aller simple' },
+  { value: 'aller_retour', label: 'Aller-retour' },
+  { value: 'recurrent', label: 'Récurrent' },
+]
 
 function Field({
   label,
@@ -61,7 +68,9 @@ export default function CreateTripScreen() {
   const insets = useSafeAreaInsets()
   const { user } = useAuth()
 
+  const [villeDepart, setVilleDepart] = useState('Montréal')
   const [destination, setDestination] = useState('')
+  const [tripType, setTripType] = useState<TripType>('aller_simple')
   const [lieuDepart, setLieuDepart] = useState('')
   const [date, setDate] = useState(new Date(Date.now() + 24 * 60 * 60 * 1000))
   const [showDatePicker, setShowDatePicker] = useState(false)
@@ -100,7 +109,9 @@ export default function CreateTripScreen() {
     setSubmitting(true)
     try {
       const tripData = {
+        ville_depart: villeDepart.trim() || 'Montréal',
         destination: destination.trim(),
+        type: tripType,
         date_depart: date.toISOString().split('T')[0],
         heure_depart: heureDepart.trim(),
         lieu_depart: lieuDepart.trim(),
@@ -153,19 +164,54 @@ export default function CreateTripScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Field label="Destination" required>
-            <TextInput
-              style={styles.input}
-              placeholder="Mont-Tremblant, Québec City…"
-              placeholderTextColor={Colors.inkMuted}
-              value={destination}
-              onChangeText={setDestination}
-              autoCapitalize="words"
-              returnKeyType="next"
-            />
+          {/* Ville de départ + Destination */}
+          <View style={styles.row}>
+            <View style={{ flex: 1, marginRight: Spacing.sm }}>
+              <Field label="Ville de départ" required>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Montréal"
+                  placeholderTextColor={Colors.inkMuted}
+                  value={villeDepart}
+                  onChangeText={setVilleDepart}
+                  autoCapitalize="words"
+                  returnKeyType="next"
+                />
+              </Field>
+            </View>
+            <View style={{ flex: 1, marginLeft: Spacing.sm }}>
+              <Field label="Destination" required>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Québec City…"
+                  placeholderTextColor={Colors.inkMuted}
+                  value={destination}
+                  onChangeText={setDestination}
+                  autoCapitalize="words"
+                  returnKeyType="next"
+                />
+              </Field>
+            </View>
+          </View>
+
+          <Field label="Type de trajet" required>
+            <View style={styles.typeRow}>
+              {TRIP_TYPES.map(t => (
+                <TouchableOpacity
+                  key={t.value}
+                  style={[styles.typeBtn, tripType === t.value && styles.typeBtnActive]}
+                  onPress={() => setTripType(t.value)}
+                  activeOpacity={0.75}
+                >
+                  <Text style={[styles.typeBtnText, tripType === t.value && styles.typeBtnTextActive]}>
+                    {t.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </Field>
 
-          <Field label="Point de départ" required>
+          <Field label="Point de rendez-vous" required>
             <TextInput
               style={styles.input}
               placeholder="Métro Berri-UQAM, Campus UdeM…"
@@ -415,5 +461,31 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.cream,
     letterSpacing: 0.4,
+  },
+  typeRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  typeBtn: {
+    flex: 1,
+    backgroundColor: Colors.cream,
+    borderWidth: 1,
+    borderColor: Colors.creamDark,
+    borderRadius: BorderRadius.md,
+    paddingVertical: 11,
+    alignItems: 'center',
+  },
+  typeBtnActive: {
+    backgroundColor: Colors.ink,
+    borderColor: Colors.ink,
+  },
+  typeBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.inkMuted,
+    letterSpacing: 0.2,
+  },
+  typeBtnTextActive: {
+    color: Colors.cream,
   },
 })

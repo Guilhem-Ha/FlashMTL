@@ -82,6 +82,7 @@ export const MOCK_OFFRES: Offre[] = [
 export const MOCK_TRIPS: Trip[] = [
   {
     id: 't1',
+    ville_depart: 'Montréal',
     destination: 'Mont-Tremblant',
     date_depart: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
     heure_depart: '8h00',
@@ -91,10 +92,12 @@ export const MOCK_TRIPS: Trip[] = [
     prix_par_personne: 15,
     organisateur_id: 'u1',
     description: "Weekend ski + détente. Partage des frais d'essence.",
+    type: 'aller_retour',
     created_at: now.toISOString(),
   },
   {
     id: 't2',
+    ville_depart: 'Montréal',
     destination: 'Québec City',
     date_depart: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString(),
     heure_depart: '9h00',
@@ -104,6 +107,22 @@ export const MOCK_TRIPS: Trip[] = [
     prix_par_personne: 20,
     organisateur_id: 'u2',
     description: 'Visite du Vieux-Québec. Retour le soir même.',
+    type: 'aller_simple',
+    created_at: now.toISOString(),
+  },
+  {
+    id: 't3',
+    ville_depart: 'Montréal',
+    destination: 'Ottawa',
+    date_depart: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    heure_depart: '7h30',
+    lieu_depart: 'Métro McGill',
+    places_total: 3,
+    places_restantes: 1,
+    prix_par_personne: 25,
+    organisateur_id: 'u3',
+    description: 'Trajet régulier chaque vendredi matin.',
+    type: 'recurrent',
     created_at: now.toISOString(),
   },
 ]

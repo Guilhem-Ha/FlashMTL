@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "FlashMTL-app",
-    "slug": "FlashMTL-app",
+    "name": "Junto",
+    "slug": "junto",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "flashmtlapp",
+    "scheme": "junto",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {

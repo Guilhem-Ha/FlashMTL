@@ -43,11 +43,11 @@ export default function TransportScreen({ active = true }: Props) {
   const [refreshing, setRefreshing] = useState(false)
   const [joiningId, setJoiningId] = useState<string | null>(null)
 
-  // Register scroll-to-top callback for tab press
+  // Register scroll-to-top callback for tab press (tab 0)
   useEffect(() => {
-    tabScrollCallbacks[1] = () =>
+    tabScrollCallbacks[0] = () =>
       flatRef.current?.scrollToOffset({ offset: 0, animated: true })
-    return () => { tabScrollCallbacks[1] = null }
+    return () => { tabScrollCallbacks[0] = null }
   }, [])
 
   const load = useCallback(async () => {
@@ -161,8 +161,8 @@ export default function TransportScreen({ active = true }: Props) {
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
         <View>
-          <Text style={styles.logo}>🚗 Flash Transport</Text>
-          <Text style={styles.subtitle}>Covoiturage entre étudiants</Text>
+          <Text style={styles.logo}>Junto 🚗</Text>
+          <Text style={styles.subtitle}>Covoiturage étudiant • Montréal</Text>
         </View>
       </View>
 

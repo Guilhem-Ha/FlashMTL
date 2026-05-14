@@ -6,13 +6,13 @@ import * as Haptics from 'expo-haptics'
 import { Colors } from '../../constants/theme'
 import { tabScrollCallbacks } from '../../lib/tabScrollRefs'
 
-import FeedScreen from './index'
-import TransportScreen from './transport'
+import TripsScreen from './transport'
+import MesTripsScreen from './index'
 import ProfilScreen from './profil'
 
 const TABS = [
-  { emoji: '⚡', label: 'Offres' },
-  { emoji: '🚗', label: 'Transport' },
+  { emoji: '🗺️', label: 'Trajets' },
+  { emoji: '🎒', label: 'Mes trips' },
   { emoji: '👤', label: 'Profil' },
 ]
 
@@ -48,7 +48,6 @@ export default function TabLayout() {
   const handleTabPress = useCallback((index: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     if (index === activePage) {
-      // Tap active tab → scroll to top
       tabScrollCallbacks[index]?.()
     } else {
       pagerRef.current?.setPage(index)
@@ -65,10 +64,10 @@ export default function TabLayout() {
         overdrag={false}
       >
         <View key="0" style={{ flex: 1 }}>
-          <FeedScreen active={activePage === 0} />
+          <TripsScreen active={activePage === 0} />
         </View>
         <View key="1" style={{ flex: 1 }}>
-          <TransportScreen active={activePage === 1} />
+          <MesTripsScreen active={activePage === 1} />
         </View>
         <View key="2" style={{ flex: 1 }}>
           <ProfilScreen active={activePage === 2} />
@@ -115,6 +114,7 @@ const styles = StyleSheet.create({
     color: Colors.inkMuted,
   },
   tabLabelActive: {
-    color: Colors.accent,
+    color: Colors.ink,
+    fontWeight: '700',
   },
 })

@@ -48,8 +48,8 @@ export default function LoginScreen() {
       >
         {/* Logo */}
         <View style={styles.logoBlock}>
-          <Text style={styles.logo}>FlashMtl</Text>
-          <Text style={styles.logoSub}>Offres étudiantes de dernière minute</Text>
+          <Text style={styles.logo}>Junto</Text>
+          <Text style={styles.logoSub}>Covoiturage étudiant · Montréal</Text>
         </View>
 
         {/* Card */}
