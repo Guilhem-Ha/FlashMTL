@@ -11,11 +11,13 @@ import { useAuth } from '../../lib/authContext'
 import { isUniversityEmail, CAMPUS_OPTIONS } from '../../lib/supabase'
 import Wordmark from '../../components/Wordmark'
 import { t } from '../../lib/i18n'
+import { useLocale } from '../../lib/locale'
 
 export default function SignupScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { signUp } = useAuth()
+  const { locale } = useLocale() // eslint-disable-line @typescript-eslint/no-unused-vars
 
   const [prenom, setPrenom] = useState('')
   const [email, setEmail] = useState('')

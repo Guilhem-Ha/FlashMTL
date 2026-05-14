@@ -13,6 +13,7 @@ import { fetchMyTrips, fetchMyOrganizedTrips } from '../../lib/api'
 import { MOCK_TRIPS } from '../../mockData'
 import { useAuth } from '../../lib/authContext'
 import { t, localDate } from '../../lib/i18n'
+import { useLocale } from '../../lib/locale'
 import type { Trip } from '../../types'
 
 const USE_MOCK = SUPABASE_URL.includes('TON_PROJECT_ID')
@@ -24,6 +25,7 @@ export default function MesTripsScreen({ active = true }: Props) {
   const insets = useSafeAreaInsets()
   const entrance = useActiveEntrance(active)
   const { user, session } = useAuth()
+  const { locale } = useLocale() // eslint-disable-line @typescript-eslint/no-unused-vars
   const scrollRef = useRef<ScrollView>(null)
 
   const [joinedTrips, setJoinedTrips] = useState<Trip[]>([])

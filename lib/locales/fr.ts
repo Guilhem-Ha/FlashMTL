@@ -1,6 +1,16 @@
 const fr = {
   dateLocale: 'fr-CA',
 
+  tabs: {
+    trips: 'Trajets',
+    myTrips: 'Mes trips',
+    profil: 'Profil',
+  },
+
+  profil_lang: {
+    label: 'Langue',
+  },
+
   common: {
     cancel: 'Annuler',
     error: 'Erreur',

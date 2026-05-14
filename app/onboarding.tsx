@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Colors, Spacing, BorderRadius } from '../constants/theme'
 import Wordmark from '../components/Wordmark'
 import { t } from '../lib/i18n'
+import { useLocale } from '../lib/locale'
 
 const { width } = Dimensions.get('window')
 
@@ -180,6 +181,7 @@ const SLIDE_MUTED = [
 export default function OnboardingScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
+  const { locale } = useLocale() // eslint-disable-line @typescript-eslint/no-unused-vars
   const [current, setCurrent] = useState(0)
   const flatRef = useRef<FlatList>(null)
   const buttonScale = useRef(new Animated.Value(1)).current

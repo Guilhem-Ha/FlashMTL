@@ -11,6 +11,7 @@ import { useAuth } from '../../lib/authContext'
 import { CAMPUS_OPTIONS } from '../../lib/supabase'
 import { registerForPushNotifications } from '../../hooks/useNotifications'
 import { t } from '../../lib/i18n'
+import { useLocale } from '../../lib/locale'
 import Constants from 'expo-constants'
 
 const IS_EXPO_GO = Constants.appOwnership === 'expo'
@@ -20,6 +21,7 @@ interface Props { active?: boolean }
 export default function ProfilScreen({ active = true }: Props) {
   const router = useRouter()
   const { user, session, signOut } = useAuth()
+  const { locale, setLocale } = useLocale()
   const entrance = useActiveEntrance(active)
 
   const [pushEnabled, setPushEnabled] = useState<boolean | null>(null)
@@ -129,6 +131,26 @@ export default function ProfilScreen({ active = true }: Props) {
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>{t('profil.campus')}</Text>
             <Text style={styles.infoValue}>{campusLabel ?? '—'}</Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>{t('profil_lang.label')}</Text>
+            <View style={styles.langToggle}>
+              <TouchableOpacity
+                style={[styles.langBtn, locale === 'fr' && styles.langBtnActive]}
+                onPress={() => setLocale('fr')}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.langBtnText, locale === 'fr' && styles.langBtnTextActive]}>FR</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.langBtn, locale === 'en' && styles.langBtnActive]}
+                onPress={() => setLocale('en')}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.langBtnText, locale === 'en' && styles.langBtnTextActive]}>EN</Text>
+              </TouchableOpacity>
+            </View>
           </View>
           {!IS_EXPO_GO && (
             <>
@@ -328,6 +350,30 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: Colors.creamDark,
+  },
+  langToggle: {
+    flexDirection: 'row',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.creamDark,
+    overflow: 'hidden',
+  },
+  langBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+    backgroundColor: Colors.background,
+  },
+  langBtnActive: {
+    backgroundColor: Colors.ink,
+  },
+  langBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.inkMuted,
+    letterSpacing: 0.5,
+  },
+  langBtnTextActive: {
+    color: Colors.cream,
   },
   pushOn: {
     flexDirection: 'row',

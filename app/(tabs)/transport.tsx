@@ -26,6 +26,7 @@ import { useAuth } from '../../lib/authContext'
 import TripCard from '../../components/TripCard'
 import Wordmark from '../../components/Wordmark'
 import { t } from '../../lib/i18n'
+import { useLocale } from '../../lib/locale'
 import type { Trip } from '../../types'
 
 const USE_MOCK = SUPABASE_URL.includes('TON_PROJECT_ID')
@@ -37,6 +38,7 @@ export default function TransportScreen({ active = true }: Props) {
   const insets = useSafeAreaInsets()
   const entrance = useActiveEntrance(active)
   const { user } = useAuth()
+  const { locale } = useLocale() // eslint-disable-line @typescript-eslint/no-unused-vars
   const flatRef = useRef<FlatList>(null)
 
   const [trips, setTrips] = useState<Trip[]>([])

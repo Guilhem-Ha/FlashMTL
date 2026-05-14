@@ -10,11 +10,13 @@ import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { useAuth } from '../../lib/authContext'
 import Wordmark from '../../components/Wordmark'
 import { t } from '../../lib/i18n'
+import { useLocale } from '../../lib/locale'
 
 export default function LoginScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { signIn } = useAuth()
+  const { locale } = useLocale() // eslint-disable-line @typescript-eslint/no-unused-vars
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

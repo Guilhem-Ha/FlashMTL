@@ -5,16 +5,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as Haptics from 'expo-haptics'
 import { Colors } from '../../constants/theme'
 import { tabScrollCallbacks } from '../../lib/tabScrollRefs'
+import { useLocale } from '../../lib/locale'
+import { t } from '../../lib/i18n'
 
 import TripsScreen from './transport'
 import MesTripsScreen from './index'
 import ProfilScreen from './profil'
 
-const TABS = [
-  { emoji: '🗺️', label: 'Trajets' },
-  { emoji: '🎒', label: 'Mes trips' },
-  { emoji: '👤', label: 'Profil' },
-]
+const TAB_EMOJIS = ['🗺️', '🎒', '👤']
 
 function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
   const scale = useRef(new Animated.Value(1)).current
@@ -44,6 +42,13 @@ export default function TabLayout() {
 
   const [activePage, setActivePage] = useState(0)
   const pagerRef = useRef<PagerView>(null)
+  const { locale } = useLocale() // eslint-disable-line @typescript-eslint/no-unused-vars
+
+  const TABS = [
+    { emoji: TAB_EMOJIS[0], label: t('tabs.trips') },
+    { emoji: TAB_EMOJIS[1], label: t('tabs.myTrips') },
+    { emoji: TAB_EMOJIS[2], label: t('tabs.profil') },
+  ]
 
   const handleTabPress = useCallback((index: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
