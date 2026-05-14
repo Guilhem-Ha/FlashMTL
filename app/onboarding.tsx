@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Colors, Spacing, BorderRadius } from '../constants/theme'
+import Wordmark from '../components/Wordmark'
 
 const { width } = Dimensions.get('window')
 
@@ -21,14 +22,14 @@ function Slide1() {
 
       {/* Wordmark */}
       <View style={slide.topBlock}>
-        <Text style={slide.wordmark}>Junto</Text>
+        <Wordmark size={44} onDark />
         <Text style={slide.tagline}>Covoiturage étudiant · Montréal</Text>
       </View>
 
       {/* Route hero */}
       <View style={slide.routeCard}>
         <LinearGradient
-          colors={['#1E1A15', '#2C2620']}
+          colors={[Colors.heroFrom, Colors.heroTo]}
           style={slide.routeGradient}
         >
           {/* Route line */}

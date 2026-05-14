@@ -2,10 +2,10 @@ import { Stack } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useFonts, Nunito_900Black } from '@expo-google-fonts/nunito'
 import { AuthProvider, useAuth } from '../lib/authContext'
 import { useNotifications } from '../hooks/useNotifications'
 import { ONBOARDING_KEY } from './onboarding'
-// Note: offre screens kept for future use
 
 export { ErrorBoundary } from 'expo-router'
 
@@ -18,16 +18,18 @@ SplashScreen.preventAutoHideAsync()
 function AppNavigator() {
   const { user } = useAuth()
   const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null)
+  const [fontsLoaded] = useFonts({ Nunito_900Black })
   useNotifications(user?.id)
 
   useEffect(() => {
     AsyncStorage.getItem(ONBOARDING_KEY).then(val => {
       setOnboardingDone(val === 'true')
-      SplashScreen.hideAsync()
+      if (fontsLoaded) SplashScreen.hideAsync()
     })
-  }, [])
+  }, [fontsLoaded])
 
-  if (onboardingDone === null) return null
+  // Keep splash visible until both fonts and onboarding state are ready
+  if (onboardingDone === null || !fontsLoaded) return null
 
   return (
     <Stack
@@ -53,16 +55,6 @@ function AppNavigator() {
         options={{
           headerShown: false,
           animation: 'fade',
-        }}
-      />
-
-      {/* Fiche offre — slide classique depuis la droite */}
-      <Stack.Screen
-        name="offre/[id]"
-        options={{
-          headerShown: false,
-          animation: 'slide_from_right',
-          gestureEnabled: true,
         }}
       />
 
@@ -93,17 +85,6 @@ function AppNavigator() {
           gestureEnabled: true,
           gestureDirection: 'vertical',
           animation: 'slide_from_bottom',
-        }}
-      />
-
-      {/* Bon de réduction — modal plein écran, pas de swipe down */}
-      <Stack.Screen
-        name="offre/redemption"
-        options={{
-          headerShown: false,
-          presentation: 'fullScreenModal',
-          animation: 'slide_from_bottom',
-          gestureEnabled: false,
         }}
       />
     </Stack>

@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
 import { useAuth } from '../../lib/authContext'
 import { isUniversityEmail, CAMPUS_OPTIONS } from '../../lib/supabase'
+import Wordmark from '../../components/Wordmark'
 
 export default function SignupScreen() {
   const router = useRouter()
@@ -84,7 +85,7 @@ export default function SignupScreen() {
       >
         {/* Logo */}
         <View style={styles.logoBlock}>
-          <Text style={styles.logo}>Junto</Text>
+          <Wordmark size={44} />
           <Text style={styles.logoSub}>Covoiturage étudiant · Montréal</Text>
         </View>
 
@@ -225,13 +226,6 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl,
     alignItems: 'center',
   },
-  logo: {
-    fontSize: 36,
-    fontWeight: '900',
-    color: Colors.ink,
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
   logoSub: {
     fontSize: 13,
     color: Colors.inkMuted,
@@ -318,9 +312,9 @@ const styles = StyleSheet.create({
     color: Colors.cream,
   },
   errorBox: {
-    backgroundColor: '#FDF0EE',
+    backgroundColor: Colors.dangerBg,
     borderWidth: 1,
-    borderColor: '#E8C4BE',
+    borderColor: Colors.dangerBorder,
     borderRadius: BorderRadius.md,
     padding: Spacing.sm,
     marginBottom: Spacing.md,

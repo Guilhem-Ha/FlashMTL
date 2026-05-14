@@ -58,7 +58,7 @@ export default function TripCard({ trip, onJoin, isOwner, hasJoined, joiningId }
 
       {/* ── Hero header sombre ── */}
       <LinearGradient
-        colors={['#1E1A15', '#2C2620']}
+        colors={[Colors.heroFrom, Colors.heroTo]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.hero}

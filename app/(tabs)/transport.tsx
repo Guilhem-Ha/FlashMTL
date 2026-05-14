@@ -24,6 +24,7 @@ import { fetchTrips, joinTrip, leaveTrip, fetchMyTripIds, notifyTripOwner } from
 import { MOCK_TRIPS } from '../../mockData'
 import { useAuth } from '../../lib/authContext'
 import TripCard from '../../components/TripCard'
+import Wordmark from '../../components/Wordmark'
 import type { Trip } from '../../types'
 
 const USE_MOCK = SUPABASE_URL.includes('TON_PROJECT_ID')
@@ -161,7 +162,7 @@ export default function TransportScreen({ active = true }: Props) {
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
         <View>
-          <Text style={styles.logo}>Junto 🚗</Text>
+          <Wordmark size={26} />
           <Text style={styles.subtitle}>Covoiturage étudiant • Montréal</Text>
         </View>
       </View>
@@ -228,12 +229,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-  },
-  logo: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: Colors.ink,
-    letterSpacing: 0.3,
   },
   subtitle: {
     fontSize: 12,

@@ -9,6 +9,14 @@ export const Colors = {
   danger: '#C0392B',
   success: '#27500A',
   background: '#F0EBE1',
+  // Design system additions
+  brand: '#FFBC58',        // logo / marketing lockup only — NOT for in-app UI
+  brandSoft: '#FFD799',    // tinted backgrounds when brand color is needed at scale
+  dangerBg: '#FDF0EE',
+  dangerBorder: '#E8C4BE',
+  successBg: '#EBF5E8',
+  heroFrom: '#1E1A15',     // TripCard dark gradient start
+  heroTo: '#2C2620',       // TripCard dark gradient end
 }
 
 export const Fonts = {

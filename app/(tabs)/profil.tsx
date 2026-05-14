@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.cream,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: '#E8C4BE',
+    borderColor: Colors.dangerBorder,
     paddingVertical: 14,
     alignItems: 'center',
   },
