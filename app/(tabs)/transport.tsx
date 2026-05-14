@@ -190,6 +190,7 @@ export default function TransportScreen({ active = true }: Props) {
               onJoin={() => handleJoin(item)}
               isOwner={user?.id === item.organisateur_id}
               hasJoined={myTripIds.includes(item.id)}
+              joiningId={joiningId}
             />
           )}
           contentContainerStyle={[styles.listContent, { paddingBottom: 80 + insets.bottom }]}
