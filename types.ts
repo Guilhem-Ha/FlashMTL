@@ -42,6 +42,12 @@ export interface Trip {
   organisateur_id: string
   description: string
   type?: TripType
+  // Aller-retour
+  date_retour?: string
+  heure_retour?: string
+  // Récurrent
+  jours_semaine?: number[]   // 1=Lun … 7=Dim
+  date_fin?: string
   created_at: string
 }
 
