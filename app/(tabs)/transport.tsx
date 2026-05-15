@@ -19,7 +19,6 @@ import * as Haptics from 'expo-haptics'
 import { useActiveEntrance } from '../../hooks/useScreenEntrance'
 import { tabScrollCallbacks } from '../../lib/tabScrollRefs'
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
-import { SUPABASE_URL } from '../../constants/theme'
 import { fetchTrips, joinTrip, leaveTrip, fetchMyTripIds, notifyTripOwner } from '../../lib/api'
 import { MOCK_TRIPS } from '../../mockData'
 import { useAuth } from '../../lib/authContext'
@@ -29,7 +28,7 @@ import { t } from '../../lib/i18n'
 import { useLocale } from '../../lib/locale'
 import type { Trip } from '../../types'
 
-const USE_MOCK = SUPABASE_URL.includes('TON_PROJECT_ID')
+const USE_MOCK = true
 
 interface Props { active?: boolean }
 
@@ -160,12 +159,12 @@ export default function TransportScreen({ active = true }: Props) {
 
   return (
     <Animated.View style={[styles.root, entrance.style]} pointerEvents="box-none">
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.heroFrom} />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
         <View style={styles.wordmarkRow}>
-          <Wordmark size={26} />
+          <Wordmark size={26} variant="text" withMark />
           <Text style={styles.wordmarkEmoji}>🚗</Text>
         </View>
         <Text style={styles.subtitle}>{t('transport.tagline')}</Text>
@@ -225,29 +224,26 @@ export default function TransportScreen({ active = true }: Props) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.heroFrom,
   },
   header: {
     paddingHorizontal: Spacing.md,
     paddingBottom: Spacing.md,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
   },
   wordmarkRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    marginBottom: 2,
   },
   wordmarkEmoji: {
     fontSize: 18,
-    lineHeight: 26,
+    lineHeight: 28,
   },
   subtitle: {
     fontSize: 12,
-    color: Colors.inkMuted,
+    color: 'rgba(245,240,232,0.45)',
     fontWeight: '300',
-    marginTop: 2,
   },
   listContent: {
     paddingTop: Spacing.sm,
@@ -267,12 +263,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: Colors.ink,
+    color: Colors.cream,
     marginBottom: Spacing.sm,
   },
   emptyText: {
     fontSize: 14,
-    color: Colors.inkMuted,
+    color: 'rgba(245,240,232,0.5)',
     textAlign: 'center',
     lineHeight: 22,
     fontWeight: '300',
@@ -282,21 +278,21 @@ const styles = StyleSheet.create({
     bottom: Spacing.lg,
     left: Spacing.md,
     right: Spacing.md,
-    backgroundColor: Colors.ink,
+    backgroundColor: Colors.brand,
     borderRadius: BorderRadius.md,
     paddingVertical: Spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.ink,
+    shadowColor: Colors.brand,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 8,
   },
   fabText: {
     fontSize: 15,
     fontWeight: '700',
-    color: Colors.cream,
+    color: Colors.ink,
     letterSpacing: 0.4,
   },
 })

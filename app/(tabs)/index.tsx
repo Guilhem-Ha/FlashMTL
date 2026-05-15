@@ -8,7 +8,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useActiveEntrance } from '../../hooks/useScreenEntrance'
 import { tabScrollCallbacks } from '../../lib/tabScrollRefs'
 import { Colors, Spacing, BorderRadius } from '../../constants/theme'
-import { SUPABASE_URL } from '../../constants/theme'
 import { fetchMyTrips, fetchMyOrganizedTrips } from '../../lib/api'
 import { MOCK_TRIPS } from '../../mockData'
 import { useAuth } from '../../lib/authContext'
@@ -16,7 +15,7 @@ import { t, localDate } from '../../lib/i18n'
 import { useLocale } from '../../lib/locale'
 import type { Trip } from '../../types'
 
-const USE_MOCK = SUPABASE_URL.includes('TON_PROJECT_ID')
+const USE_MOCK = true
 
 interface Props { active?: boolean }
 
@@ -44,8 +43,9 @@ export default function MesTripsScreen({ active = true }: Props) {
     if (!user) { setLoading(false); setRefreshing(false); return }
     try {
       if (USE_MOCK) {
-        setOrganizedTrips(MOCK_TRIPS.slice(1, 2))
-        setJoinedTrips(MOCK_TRIPS.slice(0, 1))
+        // Mock: show t2 as organized (driver), t1 and t3 as joined
+        setOrganizedTrips([MOCK_TRIPS[1]])
+        setJoinedTrips([MOCK_TRIPS[0], MOCK_TRIPS[2]])
       } else {
         const [joined, organized] = await Promise.all([
           fetchMyTrips(user.id),

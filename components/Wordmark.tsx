@@ -1,11 +1,14 @@
 import React from 'react'
-import { Image, Text, StyleSheet } from 'react-native'
+import { Image, Text, StyleSheet, View } from 'react-native'
+import Svg, { Circle, Path } from 'react-native-svg'
 import { Colors } from '../constants/theme'
 
 interface Props {
   size?: number
   variant?: 'image' | 'text'
   onDark?: boolean
+  /** When variant="text", render the inline SVG huddle mark alongside the wordmark */
+  withMark?: boolean
 }
 
 /**
@@ -13,18 +16,33 @@ interface Props {
  *
  * variant="image" (default) — renders the PNG logo asset. Use everywhere the
  *   logo should appear as a proper lockup (auth screens, onboarding, headers).
- *   Falls back to text if the image fails to load.
  *
- * variant="text" — plain Nunito 900 text. Use only when a PNG import is not
- *   possible (e.g., inside an SVG context or as a placeholder before fonts load).
+ * variant="text" — Nunito 900 text wordmark. Optionally add `withMark` to
+ *   render the inline SVG huddle mark at 78% of the font size alongside it.
  *
- * onDark — when true and variant="image", uses the transparent PNG (white logo)
- *   instead of the default opaque version so it reads on dark backgrounds.
+ * onDark — when true and variant="image", uses the transparent PNG (logo on
+ *   transparent bg) instead of the opaque cream-background version.
  *
- * The brand color (#FFBC58) is ONLY used for the text fallback.
- * All in-app interactive elements use accent (#C8A96E) — not brand.
+ * The brand color (#FFBC58) is ONLY used for the text/mark fallback.
+ * All in-app interactive elements use accent (#C8A96E) — never brand.
  */
-export default function Wordmark({ size = 36, variant = 'image', onDark = false }: Props) {
+
+/** Inline SVG of the 3-person huddle mark. Scales and recolors cleanly. */
+export function BrandMark({ size = 22, color = Colors.brand }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 64 64" fill={color} aria-hidden>
+      {/* Center head */}
+      <Circle cx="32" cy="14" r="7" />
+      {/* Side heads */}
+      <Circle cx="16" cy="22" r="6" />
+      <Circle cx="48" cy="22" r="6" />
+      {/* Shared body */}
+      <Path d="M6 50 C 6 38, 18 32, 32 32 C 46 32, 58 38, 58 50 L 58 52 C 50 55, 42 56, 32 56 C 22 56, 14 55, 6 52 Z" />
+    </Svg>
+  )
+}
+
+export default function Wordmark({ size = 36, variant = 'image', onDark = false, withMark = false }: Props) {
   if (variant === 'image') {
     const source = onDark
       ? require('../assets/images/logo-junto-transparent.png')
@@ -41,12 +59,21 @@ export default function Wordmark({ size = 36, variant = 'image', onDark = false 
     )
   }
 
+  // Text variant — Nunito 900 + optional inline SVG mark
   return (
-    <Text style={[styles.text, { fontSize: size }]}>Junto</Text>
+    <View style={styles.row}>
+      <Text style={[styles.text, { fontSize: size }]}>Junto</Text>
+      {withMark && <BrandMark size={Math.round(size * 0.78)} color={Colors.brand} />}
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
   text: {
     fontWeight: '900',
     letterSpacing: -0.5,

@@ -60,7 +60,7 @@ export default function TabLayout() {
   }, [activePage])
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.background }}>
+    <View style={{ flex: 1, backgroundColor: Colors.heroFrom }}>
       <PagerView
         ref={pagerRef}
         style={{ flex: 1 }}
@@ -102,9 +102,9 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: Colors.cream,
+    backgroundColor: Colors.heroTo,
     borderTopWidth: 1,
-    borderTopColor: Colors.creamDark,
+    borderTopColor: 'rgba(200,169,110,0.12)',
     paddingTop: 8,
   },
   tabItem: {
@@ -116,10 +116,10 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '500',
     letterSpacing: 0.3,
-    color: Colors.inkMuted,
+    color: 'rgba(245,240,232,0.4)',
   },
   tabLabelActive: {
-    color: Colors.ink,
+    color: Colors.cream,
     fontWeight: '700',
   },
 })
