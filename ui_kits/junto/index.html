@@ -1,0 +1,1350 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Junto · UI Kit</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&family=Nunito:wght@600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    /* ── Design tokens ───────────────────────────────────────── */
+    :root {
+      --cream:        #F5F0E8;
+      --cream-dark:   #EDE7D9;
+      --background:   #F0EBE1;
+      --ink:          #1A1612;
+      --ink-light:    #4A4440;
+      --ink-muted:    #8A8480;
+      --accent:       #C8A96E;
+      --brand:        #FFBC58;
+      --brand-soft:   #FFD799;
+      --white:        #FFFFFF;
+      --danger:       #C0392B;
+      --danger-bg:    #FDF0EE;
+      --danger-border:#E8C4BE;
+      --success:      #27500A;
+      --success-bg:   #EBF5E8;
+      --hero-from:    #1E1A15;
+      --hero-to:      #2C2620;
+      --fg-1: var(--ink);
+      --fg-2: var(--ink-light);
+      --fg-3: var(--ink-muted);
+      --fg-on-dark: var(--cream);
+      --bg-app:     var(--background);
+      --bg-surface: var(--cream);
+      --bg-sunken:  var(--cream-dark);
+      --bg-inverse: var(--ink);
+      --on-dark-65: rgba(245,240,232,0.65);
+      --on-dark-45: rgba(245,240,232,0.45);
+      --on-dark-25: rgba(245,240,232,0.25);
+      --accent-soft:   rgba(200,169,110,0.18);
+      --accent-border: rgba(200,169,110,0.35);
+      --font-sans:    'DM Sans', system-ui, -apple-system, sans-serif;
+      --font-serif:   'Playfair Display', Georgia, serif;
+      --font-rounded: 'Nunito', 'Quicksand', system-ui, sans-serif;
+      --font-mono:    'SF Mono', ui-monospace, Menlo, monospace;
+      --fs-9: 9px; --fs-10:10px; --fs-11:11px; --fs-12:12px;
+      --fs-13:13px; --fs-14:14px; --fs-15:15px; --fs-16:16px;
+      --fs-18:18px; --fs-22:22px; --fs-24:24px; --fs-28:28px;
+      --fs-34:34px; --fs-36:36px;
+      --fw-light:300; --fw-regular:400; --fw-medium:500;
+      --fw-semibold:600; --fw-bold:700; --fw-heavy:800; --fw-black:900;
+      --tracking-tight: -0.5px;
+      --tracking-default: 0.2px;
+      --tracking-wide: 0.5px;
+      --tracking-eyebrow: 1px;
+      --lh-tight: 1.15; --lh-snug: 1.35; --lh-body: 1.45; --lh-loose: 1.6;
+      --sp-xs:4px; --sp-sm:8px; --sp-md:16px;
+      --sp-lg:24px; --sp-xl:32px; --sp-xxl:48px;
+      --r-sm:4px; --r-md:8px; --r-lg:12px; --r-xl:20px; --r-pill:999px;
+      --shadow-card: 0 3px 10px rgba(26,22,18,0.10);
+      --shadow-cta:  0 4px 8px rgba(26,22,18,0.25);
+      --shadow-hero: 0 6px 14px rgba(0,0,0,0.25);
+      --border-card: 1px solid var(--cream-dark);
+      --border-accent: 1.5px solid var(--accent);
+      --ease-out:    cubic-bezier(0.16,1,0.3,1);
+      --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
+      --dur-fast:120ms; --dur-base:220ms; --dur-slow:320ms;
+      --press-scale: 0.97;
+    }
+
+    /* ── Reset & base ────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    html { background: #0a0908; }
+    body {
+      background: #0a0908;
+      color: var(--ink);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* ── Stage layout ────────────────────────────────────────── */
+    .junto-stage {
+      display: flex;
+      gap: 28px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* ── Sidebar ─────────────────────────────────────────────── */
+    .kit-sidebar {
+      color: var(--cream);
+      width: 220px;
+      font-size: 12px;
+      padding-top: 60px;
+    }
+    .kit-sidebar h1 {
+      font-family: var(--font-rounded);
+      font-weight: 900;
+      font-size: 26px;
+      letter-spacing: 0.3px;
+      margin: 0 0 4px;
+      color: var(--brand);
+    }
+    .kit-sidebar .sub {
+      color: rgba(245,240,232,0.45);
+      font-size: 12px;
+      font-weight: 300;
+      line-height: 1.5;
+      margin: 0 0 24px;
+    }
+    .kit-sidebar h3 {
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 10px;
+      color: rgba(245,240,232,0.45);
+      font-weight: 600;
+      margin: 0 0 8px;
+    }
+    .kit-sidebar .jump { display: flex; flex-direction: column; gap: 4px; }
+    .kit-sidebar .jump button {
+      background: none;
+      border: 0;
+      color: var(--cream);
+      font-size: 13px;
+      font-weight: 500;
+      text-align: left;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      opacity: 0.65;
+      transition: opacity 140ms, background 140ms;
+    }
+    .kit-sidebar .jump button:hover { opacity: 1; background: rgba(245,240,232,0.06); }
+    .kit-sidebar .jump button.active { opacity: 1; background: var(--accent); color: var(--ink); }
+
+    /* ── Phone frame ─────────────────────────────────────────── */
+    .phone {
+      width: 390px;
+      height: 844px;
+      background: var(--background);
+      border-radius: 46px;
+      overflow: hidden;
+      position: relative;
+      box-shadow:
+        0 0 0 10px #1A1612,
+        0 0 0 12px #2C2620,
+        0 30px 80px rgba(0,0,0,0.55);
+    }
+    .phone-notch {
+      position: absolute;
+      top: 10px; left: 50%;
+      transform: translateX(-50%);
+      width: 116px; height: 32px;
+      background: #1A1612;
+      border-radius: 18px;
+      z-index: 110;
+    }
+    .phone-screen {
+      width: 100%; height: 100%;
+      position: relative;
+      overflow: hidden;
+      background: var(--background);
+    }
+
+    /* ── Status bar ──────────────────────────────────────────── */
+    .phone-status {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 44px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 28px 0;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      z-index: 100;
+      pointer-events: none;
+    }
+    .phone-status.on-dark { color: var(--cream); }
+
+    /* ── Page primitives ─────────────────────────────────────── */
+    .page {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .page-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding-top: 50px;
+    }
+    .page-scroll::-webkit-scrollbar { width: 0; }
+
+    /* ── Surface primitives ──────────────────────────────────── */
+    .cream-card {
+      background: var(--cream);
+      border: 1px solid var(--cream-dark);
+      border-radius: var(--r-lg);
+    }
+    .dark-hero {
+      background: linear-gradient(135deg, var(--hero-from), var(--hero-to));
+      color: var(--cream);
+    }
+
+    /* ── Press effect ────────────────────────────────────────── */
+    .press {
+      transition: transform 120ms var(--ease-spring), opacity 120ms;
+      cursor: pointer;
+      user-select: none;
+    }
+    .press:active { transform: scale(0.97); opacity: 0.95; }
+
+    /* ── Typography helpers ──────────────────────────────────── */
+    .screen-title {
+      font-size: 28px; font-weight: 900;
+      color: var(--ink); letter-spacing: 0.3px;
+      padding: 16px; margin: 0;
+    }
+    .section-title {
+      font-size: 15px; font-weight: 800;
+      color: var(--ink); letter-spacing: 0.2px;
+      margin: 24px 16px 8px;
+    }
+    .label-micro {
+      font-size: 10px; font-weight: 600;
+      color: var(--ink-muted);
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+    }
+
+    /* ── FAB ─────────────────────────────────────────────────── */
+    .fab {
+      position: absolute;
+      bottom: 90px; left: 16px; right: 16px;
+      background: var(--ink); color: var(--cream);
+      border: 0; padding: 16px;
+      border-radius: 8px;
+      font: inherit; font-size: 15px; font-weight: 700;
+      letter-spacing: 0.4px;
+      box-shadow: var(--shadow-cta);
+      cursor: pointer; z-index: 5;
+    }
+
+    /* ── Toast ───────────────────────────────────────────────── */
+    .toast {
+      position: absolute;
+      top: 60px; left: 16px; right: 16px;
+      background: var(--ink); color: var(--cream);
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-size: 13px; font-weight: 500;
+      box-shadow: var(--shadow-cta);
+      z-index: 200;
+      animation: toastIn 240ms var(--ease-out);
+    }
+    .toast.success {
+      background: #1f3d11; color: #d6f3c4;
+      border-left: 4px solid var(--accent);
+    }
+
+    /* ── Animations ──────────────────────────────────────────── */
+    @keyframes fadeIn  { from { opacity:0 }          to { opacity:1 } }
+    @keyframes slideUp { from { transform:translateY(40px) } to { transform:translateY(0) } }
+    @keyframes toastIn {
+      from { opacity:0; transform:translateY(-8px) }
+      to   { opacity:1; transform:translateY(0) }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    /* ════════════════════════════════════════════════════════════
+       WORDMARK + STATUS BAR
+    ════════════════════════════════════════════════════════════ */
+    function BrandMark({ size = 28, color = 'var(--brand)' }) {
+      return (
+        <svg width={size} height={size} viewBox="0 0 64 64" fill={color}
+             xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="32" cy="14" r="7" />
+          <circle cx="16" cy="22" r="6" />
+          <circle cx="48" cy="22" r="6" />
+          <path d="M6 50 C 6 38, 18 32, 32 32 C 46 32, 58 38, 58 50 L 58 52
+                   C 50 55, 42 56, 32 56 C 22 56, 14 55, 6 52 Z" />
+        </svg>
+      );
+    }
+
+    function Wordmark({ size = 32, color = 'var(--brand)', withMark = false }) {
+      return (
+        <span style={{
+          fontFamily: "'Nunito', 'Quicksand', system-ui, sans-serif",
+          fontWeight: 900, letterSpacing: '-0.5px',
+          fontSize: size, lineHeight: 1, color,
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+        }}>
+          Junto
+          {withMark && <BrandMark size={size * 0.7} color={color} />}
+        </span>
+      );
+    }
+
+    function StatusBar({ onDark = false }) {
+      return (
+        <div className={'phone-status' + (onDark ? ' on-dark' : '')}>
+          <span>9:41</span>
+          <span style={{ display:'inline-flex', gap:6, alignItems:'center', fontSize:13 }}>
+            <span>•••</span>
+            <span>📶</span>
+            <span>🔋</span>
+          </span>
+        </div>
+      );
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       BUTTON
+    ════════════════════════════════════════════════════════════ */
+    function Button({ children, variant = 'primary', onClick, disabled, full = true, style: extStyle }) {
+      const base = {
+        border: 0, borderRadius: 8, padding: '15px 24px',
+        fontFamily: 'inherit', fontSize: 15, fontWeight: 700,
+        letterSpacing: '0.3px',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        width: full ? '100%' : 'auto',
+        transition: 'transform 120ms cubic-bezier(.34,1.56,.64,1), opacity 120ms',
+      };
+      const variants = {
+        primary:   { background: 'var(--ink)',       color: 'var(--cream)' },
+        secondary: { background: 'var(--cream)',     color: 'var(--ink)', border: '1px solid var(--cream-dark)' },
+        accent:    { background: 'var(--accent)',    color: 'var(--ink)' },
+        danger:    { background: 'var(--cream)',     color: 'var(--danger)', border: '1px solid #E8C4BE' },
+        disabled:  { background: 'var(--cream-dark)',color: 'var(--ink-muted)' },
+        join:      { background: 'var(--ink)',       color: 'var(--cream)', padding: '13px 16px' },
+      };
+      const v = disabled ? variants.disabled : (variants[variant] ?? variants.primary);
+      return (
+        <button className="press"
+          style={{ ...base, ...v, ...extStyle }}
+          onClick={disabled ? undefined : onClick}
+          disabled={disabled}
+        >{children}</button>
+      );
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       BADGE + PILL
+    ════════════════════════════════════════════════════════════ */
+    function Badge({ children, kind = 'reduction' }) {
+      const styles = {
+        reduction: { background: 'var(--ink)',        color: 'var(--cream)',    fontSize: 13, padding: '4px 10px' },
+        new:       { background: 'var(--accent)',     color: 'var(--ink)',      fontSize: 10, padding: '3px 8px'  },
+        organizer: { background: 'var(--accent)',     color: 'var(--ink)',      fontSize: 10, padding: '2px 7px'  },
+        type:      { background: 'var(--cream-dark)', color: 'var(--ink-muted)',fontSize: 10, padding: '2px 7px'  },
+        typeDark:  { background: 'rgba(200,169,110,0.18)', color: 'var(--accent)',
+                     border: '1px solid rgba(200,169,110,0.35)', fontSize: 10, padding: '3px 8px', borderRadius: 999 },
+      };
+      const s = styles[kind] ?? styles.reduction;
+      return (
+        <span style={{ display:'inline-block', borderRadius:4, fontWeight:700, letterSpacing:0.4, ...s }}>
+          {children}
+        </span>
+      );
+    }
+
+    function Pill({ children, kind = 'success' }) {
+      const palette = {
+        success: { bg:'#EBF5E8', fg:'#27500A', dot:'#27500A' },
+        danger:  { bg:'#FDF0EE', fg:'var(--danger)', dot:'var(--danger)' },
+        muted:   { bg:'var(--cream)', fg:'var(--ink-muted)', dot:'var(--ink-muted)' },
+      };
+      const c = palette[kind] ?? palette.success;
+      return (
+        <span style={{
+          background:c.bg, color:c.fg,
+          padding:'3px 8px', borderRadius:999,
+          fontSize:11, fontWeight:500,
+          display:'inline-flex', alignItems:'center', gap:5,
+        }}>
+          <span style={{ width:5, height:5, borderRadius:3, background:c.dot }} />
+          {children}
+        </span>
+      );
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       INPUT
+    ════════════════════════════════════════════════════════════ */
+    function Input({ label, type = 'text', value, onChange, placeholder, error }) {
+      return (
+        <label style={{ display:'flex', flexDirection:'column', gap:6, width:'100%' }}>
+          <span style={{
+            fontSize:12, fontWeight:600,
+            color:'var(--ink-light)',
+            letterSpacing:'0.5px', textTransform:'uppercase',
+          }}>{label}</span>
+          <input
+            type={type}
+            value={value ?? ''}
+            onChange={onChange}
+            placeholder={placeholder}
+            style={{
+              background: 'var(--background)',
+              border: error ? '1px solid #E8C4BE' : '1px solid var(--cream-dark)',
+              borderRadius: 8, padding: '14px 16px',
+              fontSize: 15, fontFamily: 'inherit',
+              color: 'var(--ink)', outline: 'none',
+            }}
+          />
+        </label>
+      );
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       EMPTY STATE
+    ════════════════════════════════════════════════════════════ */
+    function EmptyState({ emoji, title, text, cta, ctaVariant = 'primary', onCta, secondary, onSecondary, note }) {
+      return (
+        <div style={{
+          flex:1, display:'flex', flexDirection:'column',
+          alignItems:'center', padding:'32px 24px', textAlign:'center',
+        }}>
+          <div style={{ fontSize:52, marginBottom:16 }}>{emoji}</div>
+          <div style={{ fontSize:22, fontWeight:800, color:'var(--ink)', marginBottom:8 }}>{title}</div>
+          <div style={{
+            fontSize:14, fontWeight:300, color:'var(--ink-muted)',
+            lineHeight:1.55, marginBottom:32, maxWidth:280,
+          }}>{text}</div>
+          {cta && (
+            <div style={{ width:'100%', display:'flex', flexDirection:'column', gap:8 }}>
+              <Button variant={ctaVariant} onClick={onCta}>{cta}</Button>
+              {secondary && <Button variant="secondary" onClick={onSecondary}>{secondary}</Button>}
+            </div>
+          )}
+          {note && (
+            <div style={{
+              fontSize:12, fontWeight:300, color:'var(--ink-muted)',
+              marginTop:24, lineHeight:1.5, maxWidth:300,
+            }}>{note}</div>
+          )}
+        </div>
+      );
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       TAB BAR
+    ════════════════════════════════════════════════════════════ */
+    function TabBar({ active, onChange }) {
+      const tabs = [
+        { emoji:'🗺️', label:'Trajets'   },
+        { emoji:'🎒', label:'Mes trips' },
+        { emoji:'👤', label:'Profil'    },
+      ];
+      return (
+        <div style={{
+          position:'absolute', left:0, right:0, bottom:0,
+          background:'var(--cream)',
+          borderTop:'1px solid var(--cream-dark)',
+          padding:'8px 0 24px',
+          display:'flex', zIndex:10,
+        }}>
+          {tabs.map((t, i) => {
+            const isActive = i === active;
+            return (
+              <button key={i} onClick={() => onChange(i)} style={{
+                flex:1, background:'none', border:0, cursor:'pointer',
+                display:'flex', flexDirection:'column', alignItems:'center', gap:3,
+                padding:6, fontFamily:'inherit',
+              }}>
+                <span style={{
+                  fontSize:22,
+                  opacity: isActive ? 1 : 0.4,
+                  transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                  transition: 'transform 180ms cubic-bezier(.34,1.56,.64,1), opacity 140ms',
+                }}>{t.emoji}</span>
+                <span style={{
+                  fontSize:10, letterSpacing:0.3,
+                  color: isActive ? 'var(--ink)' : 'var(--ink-muted)',
+                  fontWeight: isActive ? 700 : 500,
+                }}>{t.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      );
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       ROUTE HERO (dark gradient card header)
+    ════════════════════════════════════════════════════════════ */
+    function RouteHero({ depart = 'MONTRÉAL', dest, date, time, typeIcon = '→', typeLabel }) {
+      return (
+        <div style={{
+          background: 'linear-gradient(135deg, var(--hero-from), var(--hero-to))',
+          padding: '16px',
+          display: 'flex', flexDirection: 'column', gap: 10,
+        }}>
+          {typeLabel && (
+            <span style={{
+              alignSelf: 'flex-end',
+              background: 'rgba(200,169,110,0.18)',
+              border: '1px solid rgba(200,169,110,0.35)',
+              borderRadius: 999, padding: '3px 8px',
+              fontSize: 10, fontWeight: 600,
+              color: 'var(--accent)', letterSpacing: 0.4,
+            }}>{typeIcon} {typeLabel}</span>
+          )}
+
+          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+            {/* Departure */}
+            <div style={{ display:'flex', flexDirection:'column', gap:4, maxWidth:'36%' }}>
+              <div style={{ width:8, height:8, borderRadius:4, background:'var(--accent)' }} />
+              <span style={{ fontSize:12, fontWeight:700, color:'rgba(245,240,232,0.65)', letterSpacing:0.5 }}>
+                {depart}
+              </span>
+            </div>
+
+            {/* Route line */}
+            <div style={{ flex:1, display:'flex', alignItems:'center', gap:2 }}>
+              <div style={{ flex:1, height:1.5, background:'rgba(200,169,110,0.35)' }} />
+              <span style={{ fontSize:18, color:'var(--accent)', lineHeight:1 }}>›</span>
+            </div>
+
+            {/* Destination */}
+            <div style={{ display:'flex', flexDirection:'column', gap:4, alignItems:'flex-end', marginLeft:'auto', maxWidth:'50%' }}>
+              <div style={{ width:8, height:8, borderRadius:4, background:'var(--cream)', border:'2px solid var(--accent)', boxSizing:'border-box' }} />
+              <span style={{ fontSize:18, fontWeight:900, color:'var(--cream)', textAlign:'right', lineHeight:1.1 }}>
+                {dest}
+              </span>
+            </div>
+          </div>
+
+          <div style={{ fontSize:12, color:'rgba(245,240,232,0.5)', letterSpacing:0.3 }}>
+            {date} · {time}
+          </div>
+        </div>
+      );
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       TRIP CARD
+    ════════════════════════════════════════════════════════════ */
+    function TripCard({ trip, onJoin, isOwner, hasJoined }) {
+      const placesLeft = trip.places_restantes;
+      const total      = trip.places_total;
+      const isFull     = placesLeft === 0;
+      const isUrgent   = placesLeft === 1;
+      const TYPE_ICON  = { aller_simple:'→', aller_retour:'↔', recurrent:'↺' };
+      const TYPE_LABEL = { aller_simple:'Aller simple', aller_retour:'Aller-retour', recurrent:'Récurrent' };
+      const letters    = 'ABCDEFGHJKLMNPRSTUVWXYZ';
+      const initial    = letters[(trip.organisateur_id || 'j').charCodeAt(0) % letters.length];
+
+      return (
+        <div className="cream-card press" style={{
+          margin:'0 16px 16px', overflow:'hidden',
+          boxShadow:'var(--shadow-card)',
+          borderRadius:16, padding:0,
+        }}>
+          <RouteHero
+            depart={(trip.ville_depart || 'Montréal').toUpperCase()}
+            dest={trip.destination}
+            date={trip.date_label}
+            time={trip.heure_depart}
+            typeIcon={TYPE_ICON[trip.type]}
+            typeLabel={TYPE_LABEL[trip.type]}
+          />
+
+          <div style={{ padding:16, display:'flex', flexDirection:'column', gap:12 }}>
+            {/* Pickup point + organizer avatar */}
+            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+              <div style={{
+                width:34, height:34, borderRadius:17,
+                background:'var(--ink)', color:'var(--accent)',
+                display:'flex', alignItems:'center', justifyContent:'center',
+                fontWeight:700, fontSize:13,
+              }}>{initial}</div>
+              <div>
+                <div className="label-micro">POINT DE DÉPART</div>
+                <div style={{ fontSize:14, fontWeight:600, color:'var(--ink)' }}>{trip.lieu_depart}</div>
+              </div>
+            </div>
+
+            {/* Description */}
+            {trip.description && (
+              <div style={{ fontSize:13, fontWeight:300, color:'var(--ink-muted)', lineHeight:1.45 }}>
+                {trip.description}
+              </div>
+            )}
+
+            <div style={{ height:1, background:'var(--cream-dark)' }} />
+
+            {/* Footer: seat dots + price */}
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end' }}>
+              <div>
+                <div style={{ display:'flex', gap:4, marginBottom:6 }}>
+                  {Array.from({ length: Math.min(total, 6) }).map((_, i) => {
+                    const taken = i < total - placesLeft;
+                    return (
+                      <div key={i} style={{
+                        width:11, height:11, borderRadius:3,
+                        background: taken ? 'var(--ink)' : 'var(--background)',
+                        border: '1.5px solid ' + (taken ? 'var(--ink)' : 'var(--cream-dark)'),
+                        boxSizing:'border-box',
+                      }} />
+                    );
+                  })}
+                </div>
+                <div style={{
+                  fontSize:11, fontWeight:500,
+                  color: isFull ? 'var(--ink-muted)' : isUrgent ? 'var(--danger)' : '#27500A',
+                }}>
+                  {isFull
+                    ? 'Complet'
+                    : `${placesLeft} place${placesLeft > 1 ? 's' : ''} libre${placesLeft > 1 ? 's' : ''}`}
+                </div>
+              </div>
+              <div style={{ textAlign:'right' }}>
+                <div style={{ fontSize:22, fontWeight:900, color:'var(--ink)', letterSpacing:'-0.5px' }}>
+                  {trip.prix_par_personne} $
+                </div>
+                <div style={{ fontSize:11, color:'var(--ink-muted)', marginTop:-2 }}>/ pers.</div>
+              </div>
+            </div>
+
+            {/* CTA */}
+            {isOwner ? (
+              <div style={{
+                background:'rgba(200,169,110,0.12)',
+                border:'1px solid rgba(200,169,110,0.3)',
+                borderRadius:8, padding:11,
+                textAlign:'center', color:'var(--accent)',
+                fontSize:13, fontWeight:600, letterSpacing:0.3,
+              }}>✦ Ton covoiturage</div>
+            ) : hasJoined ? (
+              <button onClick={onJoin} className="press" style={{
+                background:'#EBF5E8', border:0, borderRadius:8, padding:11,
+                textAlign:'center', color:'#27500A',
+                fontSize:13, fontWeight:600, fontFamily:'inherit', cursor:'pointer',
+              }}>✓ Inscrit · Se désinscrire</button>
+            ) : (
+              <Button variant="join" onClick={onJoin} disabled={isFull}>
+                {isFull ? 'Complet' : "J'embarque →"}
+              </Button>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       PROFILE CARD
+    ════════════════════════════════════════════════════════════ */
+    function ProfileCard({ name = 'Alexis', email = 'alexis@umontreal.ca', campus = 'Université de Montréal' }) {
+      return (
+        <>
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:24, gap:4 }}>
+            <div style={{
+              width:72, height:72, borderRadius:36,
+              background:'var(--ink)', color:'var(--accent)',
+              display:'flex', alignItems:'center', justifyContent:'center',
+              fontWeight:700, fontSize:28, marginBottom:8,
+            }}>{name[0]?.toUpperCase()}</div>
+            <div style={{ fontSize:22, fontWeight:800, color:'var(--ink)' }}>{name}</div>
+            <div style={{ fontSize:13, fontWeight:300, color:'var(--ink-muted)' }}>{email}</div>
+            <div style={{
+              marginTop:6, display:'inline-flex', alignItems:'center', gap:5,
+              background:'#EBF5E8', padding:'4px 10px', borderRadius:999,
+            }}>
+              <span style={{ width:6, height:6, borderRadius:3, background:'#27500A' }} />
+              <span style={{ fontSize:12, color:'#27500A', fontWeight:500 }}>Étudiant vérifié</span>
+            </div>
+          </div>
+
+          <div className="cream-card" style={{ margin:'0 16px', padding:'0 16px' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 0' }}>
+              <span style={{ fontSize:14, color:'var(--ink-muted)' }}>Campus</span>
+              <span style={{ fontSize:14, color:'var(--ink)', fontWeight:500 }}>{campus}</span>
+            </div>
+            <div style={{ height:1, background:'var(--cream-dark)' }} />
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 0' }}>
+              <span style={{ fontSize:14, color:'var(--ink-muted)' }}>Notifications push</span>
+              <span style={{ display:'inline-flex', alignItems:'center', gap:5 }}>
+                <span style={{ width:7, height:7, borderRadius:4, background:'#27500A' }} />
+                <span style={{ fontSize:13, color:'#27500A', fontWeight:500 }}>Activées</span>
+              </span>
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       ONBOARDING SLIDES
+    ════════════════════════════════════════════════════════════ */
+    function SlideRouteHero() {
+      return (
+        <div style={{
+          flex:1, padding:'80px 24px 24px',
+          display:'flex', flexDirection:'column', gap:24,
+          background:'var(--ink)',
+        }}>
+          <div>
+            <Wordmark size={42} color="var(--brand)" withMark />
+            <div style={{ fontSize:15, fontWeight:300, color:'rgba(245,240,232,0.65)', marginTop:10, lineHeight:1.45 }}>
+              Covoiturage étudiant · Montréal
+            </div>
+          </div>
+
+          {/* Mini trip card preview */}
+          <div style={{ borderRadius:16, overflow:'hidden', background:'var(--cream)', boxShadow:'0 6px 14px rgba(0,0,0,0.25)' }}>
+            <RouteHero depart="MONTRÉAL" dest="Québec City" date="sam. 17 mai" time="9h00" />
+            <div style={{ padding:16, display:'flex', flexDirection:'column', gap:10 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                <div style={{
+                  width:30, height:30, borderRadius:15,
+                  background:'var(--ink)', color:'var(--accent)',
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  fontSize:12, fontWeight:700,
+                }}>A</div>
+                <div>
+                  <div style={{ fontSize:9, fontWeight:600, color:'var(--ink-muted)', letterSpacing:0.5, textTransform:'uppercase' }}>Point de départ</div>
+                  <div style={{ fontSize:13, fontWeight:600, color:'var(--ink)' }}>Métro Berri-UQAM</div>
+                </div>
+              </div>
+              <div style={{ height:1, background:'var(--cream-dark)' }} />
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+                  {[true, true, false, false].map((taken, i) => (
+                    <div key={i} style={{
+                      width:10, height:10, borderRadius:3,
+                      background: taken ? 'var(--ink)' : 'var(--background)',
+                      border: '1.5px solid ' + (taken ? 'var(--ink)' : 'var(--cream-dark)'),
+                      boxSizing:'border-box',
+                    }} />
+                  ))}
+                  <span style={{ fontSize:11, color:'#27500A', fontWeight:500, marginLeft:4 }}>2 places libres</span>
+                </div>
+                <div style={{
+                  background:'var(--ink)', color:'var(--cream)',
+                  padding:'7px 12px', borderRadius:8,
+                  fontSize:12, fontWeight:700,
+                }}>J'embarque →</div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ fontSize:15, fontWeight:300, color:'rgba(245,240,232,0.55)', lineHeight:1.45 }}>
+            Propose ou rejoins un covoiturage en quelques secondes.
+          </div>
+        </div>
+      );
+    }
+
+    function SlideCampus() {
+      const campuses = ['UdeM', 'McGill', 'Concordia', 'UQAM', 'ÉTS', 'HEC'];
+      const trust = [
+        { icon:'✉️', text:'Vérification par email universitaire' },
+        { icon:'🔒', text:'Profil étudiant vérifié pour chaque membre' },
+        { icon:'⭐', text:'Système de réputation entre pairs' },
+      ];
+      return (
+        <div style={{
+          flex:1, padding:'80px 24px 24px',
+          display:'flex', flexDirection:'column', gap:24,
+          background:'var(--background)',
+        }}>
+          <div>
+            <div style={{ fontSize:52, marginBottom:4 }}>🎓</div>
+            <div style={{ fontWeight:900, fontSize:34, letterSpacing:0.3, lineHeight:1.1, color:'var(--ink)' }}>
+              Réseau de confiance
+            </div>
+            <div style={{ fontSize:15, fontWeight:300, color:'var(--ink-muted)', marginTop:6, lineHeight:1.45 }}>
+              Exclusif aux étudiants des universités montréalaises
+            </div>
+          </div>
+          <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+            {campuses.map(c => (
+              <span key={c} style={{
+                background:'var(--cream)',
+                border:'1px solid var(--cream-dark)',
+                borderRadius:999, padding:'7px 14px',
+                fontSize:13, fontWeight:600, color:'var(--ink)',
+              }}>{c}</span>
+            ))}
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+            {trust.map((t, i) => (
+              <div key={i} style={{ display:'flex', alignItems:'center', gap:12 }}>
+                <span style={{ fontSize:22, width:32, textAlign:'center' }}>{t.icon}</span>
+                <span style={{ fontSize:14, color:'var(--ink-light)', lineHeight:1.4, flex:1 }}>{t.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    function SlidePartage() {
+      const stats  = [{ value:'0 $', label:'commission' }, { value:'< 1 min', label:'pour proposer' }, { value:'∞', label:'destinations' }];
+      const routes = ['Montréal → Québec City', 'Montréal → Mont-Tremblant', 'Montréal → Ottawa'];
+      return (
+        <div style={{
+          flex:1, padding:'80px 24px 24px',
+          display:'flex', flexDirection:'column', gap:24,
+          background:'var(--accent)',
+        }}>
+          <div>
+            <div style={{ fontSize:52, marginBottom:4 }}>🚗</div>
+            <div style={{ fontWeight:900, fontSize:34, letterSpacing:0.3, lineHeight:1.1, color:'var(--ink)' }}>
+              Partage les frais
+            </div>
+            <div style={{ fontSize:15, fontWeight:300, color:'rgba(26,22,18,0.65)', marginTop:6, lineHeight:1.45 }}>
+              Fixe ton prix, coordonne le départ, Junto s'occupe du reste.
+            </div>
+          </div>
+          <div style={{ display:'flex', gap:8 }}>
+            {stats.map((s, i) => (
+              <div key={i} style={{
+                flex:1, background:'rgba(26,22,18,0.1)',
+                borderRadius:12, padding:16,
+                display:'flex', flexDirection:'column', alignItems:'center', gap:2,
+              }}>
+                <div style={{ fontSize:22, fontWeight:900, color:'var(--ink)', letterSpacing:'-0.5px' }}>{s.value}</div>
+                <div style={{ fontSize:10, fontWeight:500, color:'rgba(26,22,18,0.55)', textAlign:'center', letterSpacing:0.3 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+          <div>
+            <div style={{ fontSize:10, fontWeight:600, letterSpacing:1, color:'rgba(26,22,18,0.55)', marginBottom:6 }}>
+              TRAJETS POPULAIRES
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+              {routes.map((r, i) => (
+                <div key={i} style={{
+                  background:'rgba(26,22,18,0.1)',
+                  borderRadius:8, padding:'10px 16px',
+                  fontSize:14, fontWeight:600, color:'var(--ink)',
+                }}>{r}</div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function OnboardingSlide({ index }) {
+      if (index === 0) return <SlideRouteHero />;
+      if (index === 1) return <SlideCampus />;
+      return <SlidePartage />;
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       MOCK DATA
+    ════════════════════════════════════════════════════════════ */
+    const MOCK_TRIPS = [
+      {
+        id:'t1', ville_depart:'Montréal', destination:'Mont-Tremblant',
+        date_label:'sam. 17 mai', heure_depart:'8h00',
+        lieu_depart:'Métro Montmorency',
+        places_total:4, places_restantes:3, prix_par_personne:15,
+        organisateur_id:'u1',
+        description:"Weekend ski + détente. Partage des frais d'essence.",
+        type:'aller_retour',
+      },
+      {
+        id:'t2', ville_depart:'Montréal', destination:'Québec City',
+        date_label:'mer. 21 mai', heure_depart:'9h00',
+        lieu_depart:'Métro Berri-UQAM',
+        places_total:5, places_restantes:2, prix_par_personne:20,
+        organisateur_id:'u2',
+        description:'Visite du Vieux-Québec. Retour le soir même.',
+        type:'aller_simple',
+      },
+      {
+        id:'t3', ville_depart:'Montréal', destination:'Ottawa',
+        date_label:'ven. 23 mai', heure_depart:'7h30',
+        lieu_depart:'Métro McGill',
+        places_total:3, places_restantes:1, prix_par_personne:25,
+        organisateur_id:'u3',
+        description:'Trajet régulier chaque vendredi matin.',
+        type:'recurrent',
+      },
+      {
+        id:'t4', ville_depart:'Montréal', destination:'Sherbrooke',
+        date_label:'sam. 24 mai', heure_depart:'14h00',
+        lieu_depart:'UdeM · Métro Université-de-Montréal',
+        places_total:4, places_restantes:4, prix_par_personne:18,
+        organisateur_id:'u4',
+        description:'Retour à la maison pour le weekend.',
+        type:'aller_simple',
+      },
+    ];
+
+    /* ════════════════════════════════════════════════════════════
+       TOAST
+    ════════════════════════════════════════════════════════════ */
+    function Toast({ message, kind = 'success' }) {
+      if (!message) return null;
+      return <div className={'toast ' + kind}>{message}</div>;
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       ONBOARDING SCREEN
+    ════════════════════════════════════════════════════════════ */
+    function Onboarding({ onDone }) {
+      const [i, setI] = useState(0);
+      const isLast = i === 2;
+      const bgs  = ['var(--ink)', 'var(--background)', 'var(--accent)'];
+      const fg   = i === 0 ? 'var(--cream)' : 'var(--ink)';
+      const muted = i === 0 ? 'rgba(245,240,232,0.45)' : i === 1 ? 'var(--ink-muted)' : 'rgba(26,22,18,0.45)';
+
+      return (
+        <div style={{ position:'absolute', inset:0, background:bgs[i], display:'flex', flexDirection:'column' }}>
+          <StatusBar onDark={i === 0} />
+          {!isLast && (
+            <button onClick={onDone} style={{
+              position:'absolute', top:56, right:16,
+              background:'none', border:0,
+              color:muted, fontSize:14, cursor:'pointer', fontFamily:'inherit', zIndex:10,
+            }}>Passer</button>
+          )}
+
+          <div style={{ flex:1, display:'flex' }}>
+            <OnboardingSlide index={i} />
+          </div>
+
+          <div style={{ padding:'16px 24px 32px', display:'flex', flexDirection:'column', gap:16 }}>
+            {/* Dot indicators */}
+            <div style={{ display:'flex', justifyContent:'center', gap:7 }}>
+              {[0,1,2].map(n => (
+                <div key={n} onClick={() => setI(n)} style={{
+                  width: n === i ? 22 : 7,
+                  height: 7, borderRadius: 4,
+                  background: n === i ? fg : muted,
+                  cursor: 'pointer',
+                  transition: 'width 200ms ease',
+                }} />
+              ))}
+            </div>
+            {/* Next / CTA button */}
+            <button onClick={() => isLast ? onDone() : setI(i + 1)} className="press" style={{
+              background: fg, color: bgs[i],
+              border: 0, borderRadius: 8,
+              padding: 16, fontSize: 16, fontWeight: 700,
+              letterSpacing: 0.3, cursor: 'pointer', fontFamily: 'inherit',
+            }}>{isLast ? "C'est parti !" : 'Suivant'}</button>
+          </div>
+        </div>
+      );
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       LOGIN SCREEN
+    ════════════════════════════════════════════════════════════ */
+    function Login({ onLogin, onSwitch, onBack }) {
+      const [email, setEmail] = useState('alexis@umontreal.ca');
+      const [pw,    setPw]    = useState('motdepasse');
+      const [err,   setErr]   = useState(null);
+
+      return (
+        <div style={{ position:'absolute', inset:0, background:'var(--background)', overflow:'auto' }}>
+          <StatusBar />
+          <button onClick={onBack} style={{
+            position:'absolute', top:56, left:16,
+            background:'none', border:0,
+            color:'var(--ink-muted)', fontSize:14, cursor:'pointer', fontFamily:'inherit', zIndex:10,
+          }}>← Retour</button>
+
+          <div style={{ padding:'90px 16px 32px' }}>
+            <div style={{ textAlign:'center', marginBottom:32 }}>
+              <Wordmark size={44} withMark />
+              <div style={{ fontSize:13, color:'var(--ink-muted)', fontWeight:300, marginTop:6, letterSpacing:0.3 }}>
+                Covoiturage étudiant · Montréal
+              </div>
+            </div>
+
+            <div className="cream-card" style={{ padding:24, borderRadius:20, display:'flex', flexDirection:'column', gap:16 }}>
+              <div>
+                <div style={{ fontSize:22, fontWeight:800, color:'var(--ink)' }}>Connexion</div>
+                <div style={{ fontSize:13, color:'var(--ink-muted)', fontWeight:300, marginTop:4 }}>
+                  Connecte-toi avec ton email universitaire
+                </div>
+              </div>
+              <Input
+                label="Email universitaire"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="prenom.nom@umontreal.ca"
+              />
+              <Input
+                label="Mot de passe"
+                type="password"
+                value={pw}
+                onChange={e => setPw(e.target.value)}
+                placeholder="••••••••"
+              />
+              {err && (
+                <div style={{
+                  background:'#FDF0EE', border:'1px solid #E8C4BE',
+                  borderRadius:8, padding:10,
+                  color:'var(--danger)', fontSize:13,
+                }}>{err}</div>
+              )}
+              <Button onClick={() => {
+                if (!email.trim() || !pw.trim()) { setErr('Remplis tous les champs.'); return; }
+                const firstName = email.split('@')[0].split('.')[0];
+                onLogin({ name: firstName.charAt(0).toUpperCase() + firstName.slice(1), email });
+              }}>Se connecter</Button>
+            </div>
+
+            <div style={{ display:'flex', justifyContent:'center', marginTop:32, gap:6 }}>
+              <span style={{ fontSize:14, color:'var(--ink-muted)', fontWeight:300 }}>Pas encore de compte ?</span>
+              <button onClick={onSwitch} style={{
+                background:'none', border:0, cursor:'pointer',
+                color:'var(--accent)', fontSize:14, fontWeight:600, fontFamily:'inherit',
+              }}>Créer un compte</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       TRIPS TAB
+    ════════════════════════════════════════════════════════════ */
+    function TripsTab({ trips, user, myTripIds, onJoin, onCreate }) {
+      return (
+        <div className="page">
+          <div className="page-scroll">
+            <div style={{ padding:'16px 16px 0' }}>
+              <Wordmark size={26} withMark />
+              <div style={{ fontSize:12, color:'var(--ink-muted)', fontWeight:300, marginTop:2 }}>
+                Covoiturage étudiant • Montréal
+              </div>
+            </div>
+            <div style={{ height:16 }} />
+
+            {trips.map(t => (
+              <TripCard
+                key={t.id}
+                trip={t}
+                onJoin={() => onJoin(t)}
+                hasJoined={myTripIds.includes(t.id)}
+                isOwner={user?.id === t.organisateur_id}
+              />
+            ))}
+            <div style={{ height:80 }} />
+          </div>
+          <button className="fab press" onClick={onCreate}>+&nbsp;&nbsp;Proposer un trip</button>
+        </div>
+      );
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       MES TRIPS TAB
+    ════════════════════════════════════════════════════════════ */
+    function MiniTripRow({ trip, organized }) {
+      const TYPE_LABEL = { aller_simple:'Aller simple', aller_retour:'Aller-retour', recurrent:'Récurrent' };
+      return (
+        <div className="cream-card" style={{
+          margin:'0 16px 8px', padding:16,
+          borderColor: organized ? 'var(--accent)' : 'var(--cream-dark)',
+          borderWidth: organized ? 1.5 : 1,
+        }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8 }}>
+            <div style={{ fontSize:16, fontWeight:800, color:'var(--ink)', flex:1 }}>
+              {trip.ville_depart} → {trip.destination}
+            </div>
+            <div style={{ display:'flex', gap:4, flexShrink:0 }}>
+              {organized && <Badge kind="organizer">Organisateur</Badge>}
+              {trip.type && <Badge kind="type">{TYPE_LABEL[trip.type]}</Badge>}
+            </div>
+          </div>
+          <div style={{ fontSize:12, color:'var(--ink-muted)', fontWeight:300, marginTop:5 }}>
+            {trip.date_label} · {trip.heure_depart} · {trip.lieu_depart}
+          </div>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:8 }}>
+            {organized && (
+              <span style={{ fontSize:12, color:'var(--ink-light)', fontWeight:500 }}>
+                {trip.places_restantes}/{trip.places_total} places libres
+              </span>
+            )}
+            <span style={{
+              marginLeft:'auto',
+              background:'var(--ink)', color:'var(--cream)',
+              padding:'4px 10px', borderRadius:8,
+              fontSize:12, fontWeight:700,
+            }}>{trip.prix_par_personne} $ / pers.</span>
+          </div>
+        </div>
+      );
+    }
+
+    function MesTripsTab({ trips, myTripIds, organizedIds, onCreate }) {
+      const joined    = trips.filter(t => myTripIds.includes(t.id));
+      const organized = trips.filter(t => organizedIds.includes(t.id));
+      const hasAny    = joined.length + organized.length > 0;
+
+      return (
+        <div className="page">
+          <div className="page-scroll">
+            <h1 className="screen-title">Mes trajets</h1>
+            {!hasAny ? (
+              <EmptyState
+                emoji="🗺️"
+                title="Aucun trajet pour l'instant"
+                text="Rejoins un covoiturage dans l'onglet Trajets, ou propose le tien."
+                cta="Proposer un trip"
+                onCta={onCreate}
+              />
+            ) : (
+              <>
+                {organized.length > 0 && (
+                  <>
+                    <div className="section-title">📋 Organisés par toi</div>
+                    {organized.map(t => <MiniTripRow key={t.id} trip={t} organized />)}
+                  </>
+                )}
+                {joined.length > 0 && (
+                  <>
+                    <div className="section-title">🎒 Trips rejoints</div>
+                    {joined.map(t => <MiniTripRow key={t.id} trip={t} />)}
+                  </>
+                )}
+                <div style={{ height:80 }} />
+              </>
+            )}
+          </div>
+          {hasAny && <button className="fab press" onClick={onCreate}>+&nbsp;&nbsp;Proposer un trip</button>}
+        </div>
+      );
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       PROFIL TAB
+    ════════════════════════════════════════════════════════════ */
+    function ProfilTab({ user, onSignOut }) {
+      return (
+        <div className="page">
+          <div className="page-scroll">
+            <h1 className="screen-title">Mon Profil</h1>
+            <ProfileCard
+              name={user?.name || 'Alexis'}
+              email={user?.email || 'alexis@umontreal.ca'}
+              campus="Université de Montréal"
+            />
+            <div style={{ padding:'24px 16px 0' }}>
+              <Button variant="danger" onClick={onSignOut}>Se déconnecter</Button>
+            </div>
+            <div style={{ height:80 }} />
+          </div>
+        </div>
+      );
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       CREATE TRIP BOTTOM SHEET
+    ════════════════════════════════════════════════════════════ */
+    function CreateTrip({ onClose, onCreated }) {
+      const [dest,  setDest]  = useState('Québec City');
+      const [date,  setDate]  = useState('sam. 17 mai');
+      const [time,  setTime]  = useState('9h00');
+      const [from,  setFrom]  = useState('Métro Berri-UQAM');
+      const [seats, setSeats] = useState(3);
+      const [price, setPrice] = useState(20);
+
+      return (
+        <div style={{
+          position:'absolute', inset:0,
+          background:'rgba(26,22,18,0.45)',
+          zIndex:1000, display:'flex', alignItems:'flex-end',
+          animation:'fadeIn 200ms ease',
+        }}>
+          <div style={{
+            width:'100%', background:'var(--background)',
+            borderTopLeftRadius:20, borderTopRightRadius:20,
+            padding:'14px 16px 32px',
+            maxHeight:'88%', overflowY:'auto',
+            animation:'slideUp 280ms cubic-bezier(.16,1,.3,1)',
+          }}>
+            {/* drag handle */}
+            <div style={{ width:40, height:4, background:'var(--cream-dark)', borderRadius:2, margin:'0 auto 16px' }} />
+
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+              <div style={{ fontSize:22, fontWeight:900, color:'var(--ink)' }}>Proposer un trip</div>
+              <button onClick={onClose} style={{
+                background:'none', border:0, cursor:'pointer', color:'var(--ink-muted)', fontSize:22,
+              }}>×</button>
+            </div>
+
+            <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+              <Input label="Destination" value={dest} onChange={e => setDest(e.target.value)} placeholder="Québec City, Mont-Tremblant…" />
+              <div style={{ display:'flex', gap:10 }}>
+                <div style={{ flex:1 }}><Input label="Date"  value={date}  onChange={e => setDate(e.target.value)} /></div>
+                <div style={{ flex:1 }}><Input label="Heure" value={time}  onChange={e => setTime(e.target.value)} /></div>
+              </div>
+              <Input label="Point de départ" value={from} onChange={e => setFrom(e.target.value)} />
+              <div style={{ display:'flex', gap:10 }}>
+                <div style={{ flex:1 }}><Input label="Places" type="number" value={seats} onChange={e => setSeats(e.target.value)} /></div>
+                <div style={{ flex:1 }}><Input label="Prix / pers. ($)" type="number" value={price} onChange={e => setPrice(e.target.value)} /></div>
+              </div>
+
+              {/* Map stub */}
+              <div style={{
+                background:'var(--cream)',
+                border:'1px dashed var(--cream-dark)',
+                borderRadius:12, padding:24,
+                textAlign:'center', color:'var(--ink-muted)',
+                fontSize:12, fontWeight:500, letterSpacing:0.3,
+              }}>🗺️ &nbsp; Carte interactive · sélection du point de RDV</div>
+
+              <Button onClick={() => onCreated(dest)}>Publier le trip</Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       MAIN APP (tabs container)
+    ════════════════════════════════════════════════════════════ */
+    function MainApp({ user, onSignOut }) {
+      const [tab,         setTab]         = useState(0);
+      const [trips,       setTrips]       = useState(MOCK_TRIPS);
+      const [myTripIds,   setMyTripIds]   = useState([]);
+      const [organizedIds]                = useState([]);
+      const [toast,       setToast]       = useState(null);
+      const [showCreate,  setShowCreate]  = useState(false);
+
+      const flash = (msg) => {
+        setToast(msg);
+        setTimeout(() => setToast(null), 2400);
+      };
+
+      const handleJoin = (trip) => {
+        const isJoined = myTripIds.includes(trip.id);
+        if (isJoined) {
+          setMyTripIds(p => p.filter(id => id !== trip.id));
+          setTrips(p => p.map(t => t.id === trip.id ? { ...t, places_restantes: t.places_restantes + 1 } : t));
+          flash(`Désinscrit de ${trip.destination}.`);
+        } else {
+          if (trip.places_restantes === 0) return;
+          setMyTripIds(p => [...p, trip.id]);
+          setTrips(p => p.map(t => t.id === trip.id ? { ...t, places_restantes: t.places_restantes - 1 } : t));
+          flash(`🎉 Tu embarques ! Place réservée pour ${trip.destination}.`);
+        }
+      };
+
+      return (
+        <>
+          <StatusBar />
+          <Toast message={toast} />
+          <div style={{ position:'absolute', inset:0, paddingBottom:84 }}>
+            {tab === 0 && <TripsTab   trips={trips} user={user} myTripIds={myTripIds} onJoin={handleJoin} onCreate={() => setShowCreate(true)} />}
+            {tab === 1 && <MesTripsTab trips={trips} myTripIds={myTripIds} organizedIds={organizedIds} onCreate={() => setShowCreate(true)} />}
+            {tab === 2 && <ProfilTab  user={user} onSignOut={onSignOut} />}
+          </div>
+          <TabBar active={tab} onChange={setTab} />
+          {showCreate && (
+            <CreateTrip
+              onClose={() => setShowCreate(false)}
+              onCreated={(dest) => { setShowCreate(false); flash(`Trip proposé : Montréal → ${dest}`); }}
+            />
+          )}
+        </>
+      );
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       ROOT APP
+    ════════════════════════════════════════════════════════════ */
+    function App() {
+      const [step, setStep] = useState('onboarding');
+      const [user, setUser] = useState(null);
+
+      return (
+        <div className="junto-stage">
+          {/* Sidebar navigation */}
+          <aside className="kit-sidebar">
+            <h1>Junto</h1>
+            <p className="sub">
+              Interactive recreation of the carpool app. Tap through the flow —
+              onboarding, auth, browse trips, join, see them in <em>Mes trips</em>.
+            </p>
+            <h3>Jump to</h3>
+            <div className="jump">
+              <button
+                className={step === 'onboarding' ? 'active' : ''}
+                onClick={() => setStep('onboarding')}
+              >Onboarding</button>
+              <button
+                className={step === 'auth' ? 'active' : ''}
+                onClick={() => { setStep('auth'); setUser(null); }}
+              >Login</button>
+              <button
+                className={step === 'app' ? 'active' : ''}
+                onClick={() => { setStep('app'); setUser({ name:'Alexis', email:'alexis@umontreal.ca' }); }}
+              >Main app</button>
+            </div>
+          </aside>
+
+          {/* Phone frame */}
+          <div className="phone">
+            <div className="phone-notch" />
+            <div className="phone-screen">
+              {step === 'onboarding' && (
+                <Onboarding onDone={() => setStep('app')} />
+              )}
+              {step === 'auth' && (
+                <Login
+                  onLogin={(u) => { setUser(u); setStep('app'); }}
+                  onSwitch={() => {}}
+                  onBack={() => setStep('onboarding')}
+                />
+              )}
+              {step === 'app' && (
+                <MainApp
+                  user={user || { name:'Alexis', email:'alexis@umontreal.ca' }}
+                  onSignOut={() => { setUser(null); setStep('auth'); }}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
